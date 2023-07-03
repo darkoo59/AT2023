@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/AT-SmFoYcSNaQ/AT2023/Go/order/messages"
 	console "github.com/asynkron/goconsole"
 	"github.com/asynkron/protoactor-go/actor"
 	"github.com/asynkron/protoactor-go/remote"
-	"order-actor/messages"
 )
 
 type ReceivedOrder struct {
