@@ -11,5 +11,5 @@ message Notification {
 
 // this is the message the remote actor should reply with
 message Response {
-  string SomeValue = 1;
+  string Message = 1;
 }

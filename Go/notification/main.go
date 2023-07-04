@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/notification/messages"
 	console "github.com/asynkron/goconsole"
 	"github.com/asynkron/protoactor-go/actor"
@@ -12,9 +13,12 @@ type NotificationActor struct{}
 func (*NotificationActor) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
 	case *messages.Notification:
-		println(context.Message().(*messages.Notification).Message)
+		fmt.Println("Received notification: " + context.Message().(*messages.Notification).Message)
+
+		//TODO: SEND MESSAGE TO CUSTOMER ACTOR
+
 		context.Send(msg.Sender, &messages.Response{
-			SomeValue: "response",
+			Message: "Notification sent.",
 		})
 	}
 }
