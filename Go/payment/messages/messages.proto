@@ -1,0 +1,4 @@
+syntax ="proto3";
+package messages;
+option go_package="Go/messages";
+import "actor.proto";
