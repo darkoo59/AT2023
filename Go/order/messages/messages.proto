@@ -1,0 +1,36 @@
+syntax = "proto3";
+package messages;
+option go_package = "Go/messages";
+import "order.proto";
+
+message ReceiveOrder_Request {
+  string userId = 1;
+  string itemId = 2;
+  int32 quantity = 3;
+}
+
+// this is the message the order actor will send to the inventory actor
+message CheckAvailability_Request {
+  order.PID Sender = 1; // this is the PID the remote actor should reply to
+  string itemId = 2;
+  int32 quantity = 3;
+}
+
+message OrderUpdated_Request {
+  order.PID Sender = 1;
+  string status = 2;
+}
+
+message EmptyMessage {
+  order.PID Sender = 1;
+  string Message = 2;
+}
+
+// this is the message the remote actor should reply with
+message CheckAvailability_Response {
+  bool isAvailable = 1;
+}
+
+message PaymentInfo_Response {
+  bool successful = 1;
+}
