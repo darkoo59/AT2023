@@ -2,7 +2,11 @@ module github.com/AT-SmFoYcSNaQ/AT2023/Go/payment
 
 go 1.20
 
-require github.com/asynkron/protoactor-go v0.0.0-20230414121700-22ab527f4f7a
+require (
+	github.com/asynkron/goconsole v0.0.0-20160504192649-bfa12eebf716
+	github.com/asynkron/protoactor-go v0.0.0-20230414121700-22ab527f4f7a
+	google.golang.org/protobuf v1.28.1
+)
 
 require (
 	github.com/Workiva/go-datastructures v1.0.53 // indirect
