@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/config"
+	"github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/controller"
+	"github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/service"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -19,11 +22,21 @@ func MiddlewareContentTypeSet() gin.HandlerFunc {
 	}
 }
 
+func initializeControllers(routerGroup *gin.RouterGroup, logger *zap.Logger) {
+	customerService := service.CreateCustomerService(logger)
+	customerController := controller.NewUserController(logger, customerService)
+	customerController.CustomerRoute(routerGroup)
+
+	authService := service.CreateAuthService(logger, customerService)
+	authController := controller.NewAuthController(logger, authService)
+	authController.AuthRoute(routerGroup)
+}
+
 func main() {
 
 	logger, err := zap.NewProduction()
 	if err != nil {
-		fmt.Println("Failed to create logger", err)
+		fmt.Println("Failed to create logger", err.Error())
 	}
 	defer func(logger *zap.Logger) {
 		err := logger.Sync()
@@ -33,7 +46,11 @@ func main() {
 	}(logger)
 	sugar := logger.Sugar()
 
-	port := os.Getenv("PORT")
+	loadConfig, err := config.LoadConfig(".")
+	if err != nil {
+		sugar.Error(err.Error())
+	}
+	port := loadConfig.Port
 	if len(port) == 0 {
 		port = "9000"
 	}
@@ -45,8 +62,8 @@ func main() {
 		Addr:         ":" + port,
 		Handler:      router,
 		IdleTimeout:  120 * time.Second,
-		ReadTimeout:  1 * time.Second,
-		WriteTimeout: 1 * time.Second,
+		ReadTimeout:  2 * time.Second,
+		WriteTimeout: 2 * time.Second,
 	}
 
 	sugar.Infof("Server listening on port: %s", port)
@@ -58,12 +75,14 @@ func main() {
 	corsConfig.AllowCredentials = true
 
 	router.Use(cors.New(corsConfig))
-	//routerGroup := router.Group("/api")
+	routerGroup := router.Group("/api")
+
+	initializeControllers(routerGroup, logger)
 
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil {
-			sugar.Fatal(err)
+			sugar.Fatal(err.Error())
 		}
 	}()
 
