@@ -1,0 +1,16 @@
+syntax = "proto3";
+package message;
+option go_package = "Go/messages";
+import "customer.proto";
+
+message ReceiveOrder_Request {
+  string userId = 1;
+  string itemId = 2;
+  int32 quantity = 3;
+}
+
+message Payment_Request {
+  string userId = 1;
+  string accountNumber = 2;
+  double accountBalance = 3;
+}

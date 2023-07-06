@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="defaultdb@eighth-guppy-8754.8nj.cockroachlabs.cloud" uuid="fad2b084-9c5d-4fb2-83d6-caa8dd23ace5">
+    <data-source source="LOCAL" name="defaultdb@eighth-guppy-8754.8nj.cockroachlabs.cloud" uuid="7bf42266-1507-4f16-8e4b-e42c8d06924b">
       <driver-ref>cockroach</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
