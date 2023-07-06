@@ -5,10 +5,14 @@ import (
 	"fmt"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/config"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/controller"
+	"github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/customer_actor"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/service"
+	"github.com/asynkron/protoactor-go/actor"
+	"github.com/asynkron/protoactor-go/remote"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,8 +26,8 @@ func MiddlewareContentTypeSet() gin.HandlerFunc {
 	}
 }
 
-func initializeControllers(routerGroup *gin.RouterGroup, logger *zap.Logger) {
-	customerService := service.CreateCustomerService(logger)
+func initializeControllers(routerGroup *gin.RouterGroup, customerActor *customer_actor.CustomerActor, logger *zap.Logger) {
+	customerService := service.CreateCustomerService(customerActor, logger)
 	customerController := controller.NewUserController(logger, customerService)
 	customerController.CustomerRoute(routerGroup)
 
@@ -32,9 +36,32 @@ func initializeControllers(routerGroup *gin.RouterGroup, logger *zap.Logger) {
 	authController.AuthRoute(routerGroup)
 }
 
-func main() {
+func initializeActorSystem(loadConfig config.Config, logger *zap.Logger) *customer_actor.CustomerActor {
+	system := actor.NewActorSystem()
+	remoteConfig := remote.Configure(loadConfig.ActorHostAddress, loadConfig.ActorCustomerPort)
+	remoting := remote.NewRemote(system, remoteConfig)
+	remoting.Start()
 
-	logger, err := zap.NewProduction()
+	actorContext := system.Root
+	customerActor := &customer_actor.CustomerActor{
+		Remoting: remoting,
+		Context:  actorContext,
+		Logger:   logger,
+	}
+	customerActorProps := actor.PropsFromProducer(func() actor.Actor {
+		return customerActor
+	})
+	remoting.Register("customer-actor", customerActorProps)
+	logger.Info("Customer actor registered")
+
+	return customerActor
+}
+
+func main() {
+	zapConfig := zap.NewDevelopmentConfig()
+	zapConfig.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	zapConfig.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006/01/02 15:04:05")
+	logger, err := zapConfig.Build()
 	if err != nil {
 		fmt.Println("Failed to create logger", err.Error())
 	}
@@ -50,14 +77,13 @@ func main() {
 	if err != nil {
 		sugar.Error(err.Error())
 	}
+
 	port := loadConfig.Port
 	if len(port) == 0 {
 		port = "9000"
 	}
-
 	router := gin.Default()
 	router.Use(MiddlewareContentTypeSet())
-
 	server := &http.Server{
 		Addr:         ":" + port,
 		Handler:      router,
@@ -65,24 +91,19 @@ func main() {
 		ReadTimeout:  2 * time.Second,
 		WriteTimeout: 2 * time.Second,
 	}
-
 	sugar.Infof("Server listening on port: %s", port)
 
-	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{"http://localhost:3000", "http://localhost:3001"}
-	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"}
-	corsConfig.AllowHeaders = []string{"Content-Type", "Authorization"}
-	corsConfig.AllowCredentials = true
-
+	corsConfig := corsConfig()
 	router.Use(cors.New(corsConfig))
 	routerGroup := router.Group("/api")
 
-	initializeControllers(routerGroup, logger)
+	customerActor := initializeActorSystem(loadConfig, logger)
+	initializeControllers(routerGroup, customerActor, logger)
 
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil {
-			sugar.Fatal(err.Error())
+			sugar.Info(err.Error())
 		}
 	}()
 
@@ -97,7 +118,16 @@ func main() {
 	defer cancel()
 
 	if server.Shutdown(timeoutContext) != nil {
-		logger.Fatal("Cannot gracefully shutdown...")
+		logger.Error("Cannot gracefully shutdown...")
 	}
-	sugar.Error("Server stopped")
+	sugar.Info("Server stopped")
+}
+
+func corsConfig() cors.Config {
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{"http://localhost:3000", "http://localhost:3001"}
+	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"}
+	corsConfig.AllowHeaders = []string{"Content-Type", "Authorization"}
+	corsConfig.AllowCredentials = true
+	return corsConfig
 }

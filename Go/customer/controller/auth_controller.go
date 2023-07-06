@@ -29,15 +29,15 @@ func (ac *AuthController) AuthRoute(rg *gin.RouterGroup) {
 }
 
 func (ac *AuthController) Register(ctx *gin.Context) {
-	var registerParams *service.RegisterBody
-	if err := ctx.ShouldBindJSON(&registerParams); err != nil {
+	var registerBody *service.RegisterBody
+	if err := ctx.ShouldBindJSON(&registerBody); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "failed to parse JSON body"})
 		return
 	}
 
 	customer := &model.Customer{
-		Email:    registerParams.Email,
-		Password: registerParams.Password,
+		Email:    registerBody.Email,
+		Password: registerBody.Password,
 	}
 
 	err := ac.service.Register(customer)
