@@ -5,16 +5,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d2d1a43a-437d-427d-9ff7-0058932e5c01" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Go/payment/messages/messages.pb.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Go/payment/messages/proto/actor.proto" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Go/payment/messages/proto/messages.proto" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Go/payment/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/Go/payment/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Go/payment/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/Go/payment/go.sum" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Go/payment/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/Go/payment/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Go/payment/messages/messages.proto" beforeDir="false" afterPath="$PROJECT_DIR$/Go/payment/messages/messages.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Go/payment/messages/actor.proto" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Go/payment/messages/messages.pb.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Go/payment/messages/messages.proto" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Go File" />
+      </list>
+    </option>
   </component>
   <component name="GOROOT" url="file://C:/Program Files/Go" />
   <component name="Git.Settings">
@@ -30,6 +41,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "DefaultGoTemplateProperty": "Go File",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.go.formatter.settings.were.checked": "true",
@@ -40,15 +52,15 @@
     "go.import.settings.migrated": "true",
     "go.sdk.automatically.set": "true",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "D:/AT2023",
+    "last_opened_file_path": "D:/Github/AT2023",
     "node.js.detected.package.eslint": "true",
     "node.js.selected.package.eslint": "(autodetect)"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="D:\Github\AT2023\Go\payment\messages" />
       <recent name="D:\Github\AT2023\Go\payment\messages\proto" />
+      <recent name="D:\Github\AT2023\Go\payment\messages" />
     </key>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />

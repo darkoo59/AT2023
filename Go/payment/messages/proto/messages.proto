@@ -1,14 +1,14 @@
 syntax ="proto3";
 package messages;
-option go_package=".";
-import "actor.proto";
+option go_package="Go/messages";
+
 
 //message sent to OrderActor about successful payment
 message OrderPaymentInfo{
   string orderId = 1; //is this needed?
   bool isSuccessful = 2;
   string accountNumber = 3;
-  string accountBalance = 4;
+  float accountBalance = 4;
 }
 
 //message sent to NotificationActor
@@ -22,5 +22,5 @@ message PaymentRequest {
   float pricePerItem = 2;
   string orderId = 3; //same orderId that needs to be in response from this actor
   string accountNumber = 4;
-  string accountBalance = 5;
+  float accountBalance = 5; //new account balance
 }
