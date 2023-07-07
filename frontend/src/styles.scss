@@ -1,0 +1,30 @@
+@use "style/colors" as vars;
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+a {
+  text-decoration: none;
+}
+
+section {
+  padding: 30px;
+  padding-bottom: 120px;
+
+  &.container {
+    margin: auto;
+    max-width: 1000px;
+  }
+}
+
+.errors {
+  color: var(--error);
+  font-style: italic;
+}

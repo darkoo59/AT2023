@@ -1,0 +1,83 @@
+.auth-block {
+  width: 1100px;
+  height: 650px;
+  box-shadow: 1px 1px 20px 1px rgba(255, 0, 0, 0.7);
+  position: absolute;
+  inset: 0px;
+  margin: auto;
+  overflow: hidden;
+  border-radius: 45px;
+
+  &>* {
+    position: relative;
+  }
+
+  .transition-block {
+    width: 400px;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    transform-origin: center;
+    overflow: hidden;
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0px;
+      background-color: var(--primary);
+    }
+
+    button {
+      margin: 390px auto 0px auto;
+      position: relative;
+      height: 52px;
+      width: 150px;
+      text-transform: uppercase;
+      display: block;
+
+      .inner {
+        position: absolute;
+        display: block;
+        top: 0px;
+        left: -50px;
+        right: 0px;
+        bottom: 0px;
+        margin: auto;
+        height: 16px;
+        width: 108px;
+      }
+    }
+  }
+
+  .message-block {
+    width: 320px;
+    position: absolute;
+    font-size: 16px;
+    text-align: center;
+    padding-top: 200px;
+    padding-right: 40px;
+    padding-left: 40px;
+    top: 0px;
+    color: #fff;
+
+    h3 {
+      padding-bottom: 30px;
+    }
+
+    &.register-message {
+      right: 0px;
+    }
+  }
+
+  .form-container {
+    width: 700px;
+    position: absolute;
+    top: 0px;
+    height: 100%;
+
+    &.register-block {
+      right: 0px;
+    }
+  }
+}

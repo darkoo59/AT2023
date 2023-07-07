@@ -1,0 +1,75 @@
+/*
+  File for all colors used in the application.
+  See predefined material palettes on: https://material.angularjs.org/1.1.0/demo/colors
+  Custom palettes can be built using: http://mcg.mbitson.com/
+*/
+
+@use '@angular/material' as mat;
+
+$primary: mat.define-palette(mat.$deep-purple-palette);
+$accent: mat.define-palette(mat.$amber-palette);
+$warn: mat.define-palette(mat.$red-palette);
+
+$primary-dark: mat.define-palette(mat.$amber-palette);
+$accent-dark: mat.define-palette(mat.$deep-orange-palette);
+$warn-dark: mat.define-palette(mat.$red-palette);
+
+$light-theme: mat.define-light-theme((
+  color: (
+    primary: $primary,
+    accent: $accent,
+    warn: $warn
+  )
+));
+
+$dark-theme: mat.define-dark-theme((
+  color: (
+    primary: $primary-dark,
+    accent: $accent-dark,
+    warn: $warn-dark
+  )
+));
+
+$background-light: mat.$light-theme-background-palette;
+$foreground-light: mat.$light-theme-foreground-palette;
+$background-dark: mat.$dark-theme-background-palette;
+$foreground-dark: mat.$dark-theme-foreground-palette;
+
+@include mat.core();
+@include mat.all-component-themes($light-theme);
+.dark-theme {
+  @include mat.all-component-colors($dark-theme);
+}
+
+:root{
+  --primary:      #{map-get($primary,           500)};
+  --primary-2:    #{map-get($primary,           400)};
+  --secondary:    #{map-get($accent,            500)};
+  --secondary-2:  #{map-get($accent,            400)};
+  --error:        #{map-get($warn,              500)};
+  --foreground:   #{map-get($foreground-light,  'text')};
+  --foreground-2: #{map-get($foreground-light,  'icon')};
+  --background:   #{map-get($background-light,  'background')};
+  --background-2: #{map-get($background-light,  'app-bar')};
+  --background-3: #{map-get($background-light,  'dialog')};
+  --background-4: #{map-get($background-light,  'tooltip')};
+}
+
+.dark-theme{
+  --primary:      #{map-get($primary-dark,      500)};
+  --primary-2:    #{map-get($primary-dark,      400)};
+  --secondary:    #{map-get($accent-dark,       300)};
+  --secondary-2:  #{map-get($accent-dark,       400)};
+  --error:        #{map-get($warn-dark,         500)};
+  --foreground:   #{map-get($foreground-dark,   'text')};
+  --foreground-2: #{map-get($foreground-dark,   'icon')};
+  --background:   #{map-get($background-dark,   'background')};
+  --background-2: #{map-get($background-dark,   'app-bar')};
+  --background-3: #{map-get($background-dark,   'dialog')};
+  --background-4: #{map-get($background-dark,   'tooltip')};
+
+  * {
+    color-scheme: dark!important;
+  }
+}
+

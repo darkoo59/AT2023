@@ -1,0 +1,7 @@
+<div *ngLet="theme$ | async">
+  <router-outlet></router-outlet>
+</div>
+
+<div class="loading-screen" *ngIf="loading$ | async">
+  <div class="loader"></div>
+</div>
