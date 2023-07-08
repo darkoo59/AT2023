@@ -7,26 +7,26 @@
   </div>
 
   <div class="transition-block" [@transitionBlock]="state">
-    <button (click)="switchState()" mat-flat-button color="accent">
-      <div *ngIf="state=='register'" class="inner login-text">sign in</div>
-      <div *ngIf="state=='login'" class="inner register-text">sign up</div>
+    <button (click)="switchState()" mat-flat-button color="warn">
+      <div *ngIf="state=='register'" class="inner login-text">Login</div>
+      <div *ngIf="state=='login'" class="inner register-text">Register</div>
     </button>
   </div>
 
   <div class="message-block login-message" [@loginMessage]="state">
     <h3>
-      Welcome Back!
+      Hello!
     </h3>
     <p>
-      To keep being connected with us please enter your personal info
+      Enter your personal details
     </p>
   </div>
   <div class="message-block register-message" [@registerMessage]="state">
     <h3>
-      Hello, Friend!
+      Welcome Back!
     </h3>
     <p>
-      Enter your personal details and start journey with us
+      To keep being connected with us please enter your personal info
     </p>
   </div>
 </div>

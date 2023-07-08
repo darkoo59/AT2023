@@ -23,6 +23,9 @@ export class LoginComponent {
     switchMap((data: LoginDto | unknown) => {
       return this.authService.login(data as LoginDto).pipe(
         catchError((error: any) => {
+          if (error.includes("401 Unauthorized")) {
+            this.notificationService.showError(`Invalid credentials`);
+          }
           this.authLoadingService.setData = false;
           return EMPTY;
         })

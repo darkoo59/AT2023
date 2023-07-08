@@ -13,6 +13,7 @@
         matInput
         formControlName="email"
         placeholder="Ex. example@domain.com"
+        autocomplete="email"
       />
       <mat-error
         *ngIf="
@@ -29,7 +30,7 @@
 
     <mat-form-field *ngLet="{ name: 'Password' } as vm">
       <mat-label>{{ vm.name }}</mat-label>
-      <input type="password" matInput formControlName="password" />
+      <input type="password" matInput formControlName="password" autocomplete="current-password" />
       <mat-error *ngIf="form.controls['password'].hasError('required')">
         {{ vm.name }} is <strong>required</strong>
       </mat-error>

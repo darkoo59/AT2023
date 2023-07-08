@@ -63,7 +63,7 @@ func (ac *AuthController) Login(ctx *gin.Context) {
 
 	id, err := ac.service.Login(credentials)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
