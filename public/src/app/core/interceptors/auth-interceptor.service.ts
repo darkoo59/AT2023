@@ -18,7 +18,9 @@ export class AuthInterceptor implements HttpInterceptor {
   ): Observable<HttpEvent<any>> {
     req = this.addToken(req, this.authService.token);
     return req.url.indexOf('/auth/refresh') > -1
-      ? next.handle(req)
+      ? next.handle(req).pipe(
+        catchError(() => this.authService.logout())
+      )
       : next.handle(req).pipe(
           catchError((error) => {
             if (error.status == 401 && this.authService.token !== null) {
