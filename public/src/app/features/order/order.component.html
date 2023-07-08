@@ -1,0 +1,19 @@
+<section class="container" *ngLet="{ createOrder: createOrder$ | async } as vm">
+  <h3>Create order</h3>
+  <form *ngIf="form" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div>
+      <mat-selection-list [multiple]="false" formControlName="item">
+        <mat-list-option *ngFor="let item of itemList" [value]="item.id">
+          {{ item.name }}
+        </mat-list-option>
+      </mat-selection-list>
+    </div>
+    <div>
+      <mat-form-field appearance="fill" class="form-field">
+        <mat-label>Quantity</mat-label>
+        <input type="number" matInput formControlName="quantity" />
+      </mat-form-field>
+    </div>
+    <button mat-flat-button>Create Order</button>
+  </form>
+</section>

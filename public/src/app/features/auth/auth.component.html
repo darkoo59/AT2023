@@ -1,0 +1,37 @@
+<div class="auth-block">
+  <div class="form-container login-block" [@loginBlock]="state">
+    <app-login></app-login>
+  </div>
+  <div class="form-container register-block" [@registerBlock]="state">
+    <app-register></app-register>
+  </div>
+
+  <div class="transition-block" [@transitionBlock]="state">
+    <button (click)="switchState()" mat-flat-button color="accent">
+      <div *ngIf="state=='register'" class="inner login-text">sign in</div>
+      <div *ngIf="state=='login'" class="inner register-text">sign up</div>
+    </button>
+  </div>
+
+  <div class="message-block login-message" [@loginMessage]="state">
+    <h3>
+      Welcome Back!
+    </h3>
+    <p>
+      To keep being connected with us please enter your personal info
+    </p>
+  </div>
+  <div class="message-block register-message" [@registerMessage]="state">
+    <h3>
+      Hello, Friend!
+    </h3>
+    <p>
+      Enter your personal details and start journey with us
+    </p>
+  </div>
+</div>
+
+<button mat-button [routerLink]="['/home']">
+  <mat-icon>keyboard_backspace</mat-icon>
+  <span style="margin-left:12px;font-size: 15px;">Home</span>
+</button>

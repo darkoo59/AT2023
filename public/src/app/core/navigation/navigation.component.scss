@@ -1,0 +1,13 @@
+.nav-active {
+  position: relative;
+
+  &::after {
+    content: "";
+    top: 0px;
+    right: 0px;
+    position: absolute;
+    width: 5px;
+    height: 100%;
+    background-color: var(--primary);
+  }
+}

@@ -1,0 +1,16 @@
+<nav *ngIf="routes.length != 0">
+  <mat-nav-list *ngLet="{ isLogged: isLogged$ | async } as vm">
+    <div>
+      <ng-container *ngFor="let route of routes">
+        <a
+          mat-list-item
+          *ngIf="!route.protected || vm.isLogged"
+          [routerLink]="route.path"
+          routerLinkActive="nav-active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          >{{ route.title }}</a
+        >
+      </ng-container>
+    </div>
+  </mat-nav-list>
+</nav>

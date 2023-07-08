@@ -1,0 +1,48 @@
+<form
+  *ngLet="{ submit: $submit | async, error: $error | async } as vm"
+  [formGroup]="form"
+  (ngSubmit)="onSubmit()"
+>
+  <h3>Login</h3>
+
+  <div class="grid-container">
+    <mat-form-field *ngLet="{ name: 'Email' } as vm">
+      <mat-label>{{ vm.name }}</mat-label>
+      <input
+        type="email"
+        matInput
+        formControlName="email"
+        placeholder="Ex. example@domain.com"
+      />
+      <mat-error
+        *ngIf="
+          form.controls['email'].hasError('email') &&
+          !form.controls['email'].hasError('required')
+        "
+      >
+        Please enter a valid email address
+      </mat-error>
+      <mat-error *ngIf="form.controls['email'].hasError('required')">
+        {{ vm.name }} is <strong>required</strong>
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field *ngLet="{ name: 'Password' } as vm">
+      <mat-label>{{ vm.name }}</mat-label>
+      <input type="password" matInput formControlName="password" />
+      <mat-error *ngIf="form.controls['password'].hasError('required')">
+        {{ vm.name }} is <strong>required</strong>
+      </mat-error>
+    </mat-form-field>
+
+    <div>
+      <mat-error>
+        {{ vm.error }}
+      </mat-error>
+    </div>
+  </div>
+
+  <div class="button-group">
+    <button class="submit" mat-flat-button color="primary">Submit</button>
+  </div>
+</form>
