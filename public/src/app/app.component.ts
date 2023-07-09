@@ -2,6 +2,7 @@ import { Component, Renderer2 } from '@angular/core';
 import { tap } from 'rxjs';
 import { ThemeService } from './core/services/theme.service';
 import { LoadingService } from './core/services/loading.service';
+import { NotificationService } from './core/services/notification.service';
 
 @Component({
   selector: 'app-root',
@@ -17,10 +18,12 @@ export class AppComponent {
         this.renderer.removeClass(document.body, 'dark-theme');
     })
   );
+  notification$ = this.notificationService.socket$;
 
   constructor(
     private renderer: Renderer2,
     private themeService: ThemeService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private notificationService: NotificationService
   ) {}
 }

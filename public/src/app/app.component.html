@@ -1,4 +1,9 @@
-<div *ngLet="theme$ | async">
+<div
+  *ngLet="{
+    theme: theme$ | async,
+    notification: notification$ | async
+  } as vm"
+>
   <router-outlet></router-outlet>
 </div>
 
