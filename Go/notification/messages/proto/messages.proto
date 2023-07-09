@@ -7,6 +7,8 @@ import "actor.proto"; // we need to import actor.proto, so our messages can incl
 message Notification {
   actor.PID Sender = 1; // this is the PID the remote actor should reply to
   string Message = 2;
+  string ReceiverId = 3;
+  int32 Type = 4;
 }
 
 // this is the message the remote actor should reply with
