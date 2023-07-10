@@ -7,6 +7,8 @@ import (
 	"github.com/asynkron/protoactor-go/actor"
 	"github.com/asynkron/protoactor-go/remote"
 	"time"
+	//notifMessage "github.com/AT-SmFoYcSNaQ/AT2023/Go/notification/messages"
+	//orderMessage "github.com/AT-SmFoYcSNaQ/AT2023/Go/order/messages"
 )
 
 type PaymentReq struct {
@@ -21,6 +23,21 @@ type PaymentActor struct {
 	remoting *remote.Remote
 	context  *actor.RootContext
 }
+
+//func (actor *PaymentActor) Receive(context actor.Context) {
+//	switch msg := context.Message().(type) {
+//	case *orderMessage.PaymentRequest:
+//		paymentReq := PaymentReq{
+//			Quantity:       msg.Quantity,
+//			PricePerItem:   msg.PricePerItem,
+//			OrderId:        msg.OrderId,
+//			AccountBalance: msg.AccountBalance,
+//			AccountNumber:  msg.AccountNumber,
+//			UserId: msg.UserId,
+//		}
+//		actor.handlePaymentRequest(paymentReq, context.Self())
+//	}
+//}
 
 func (actor *PaymentActor) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
@@ -43,13 +60,13 @@ func (actor *PaymentActor) handlePaymentRequest(paymentReq PaymentReq, self *act
 
 	if !paymentSuccessful {
 		actor.sendPaymentInfo(paymentReq, paymentSuccessful)
-		actor.sendPaymentInfoNotification(paymentReq, paymentSuccessful)
+		actor.sendPaymentInfoNotification(paymentReq, paymentSuccessful, self)
 		return
 	}
 	paymentReq.AccountBalance -= totalPrice
 
 	actor.sendPaymentInfo(paymentReq, paymentSuccessful)
-	actor.sendPaymentInfoNotification(paymentReq, paymentSuccessful)
+	actor.sendPaymentInfoNotification(paymentReq, paymentSuccessful, self)
 }
 
 func (actor *PaymentActor) sendPaymentInfo(paymentReq PaymentReq, isSuccessful bool) {
@@ -71,7 +88,7 @@ func (actor *PaymentActor) sendPaymentInfo(paymentReq PaymentReq, isSuccessful b
 	fmt.Println("Sent payment message to order actor!")
 }
 
-func (actor *PaymentActor) sendPaymentInfoNotification(paymentReq PaymentReq, isSuccessful bool) {
+func (actor *PaymentActor) sendPaymentInfoNotification(paymentReq PaymentReq, isSuccessful bool, self *actor.PID) {
 	fmt.Println("Sending payment info to notification actor")
 
 	paymentMessage := ""
@@ -83,6 +100,15 @@ func (actor *PaymentActor) sendPaymentInfoNotification(paymentReq PaymentReq, is
 	}
 
 	spawnResponse, err := actor.remoting.SpawnNamed("127.0.0.1:8098", "notification-actor", "notification-actor", time.Second)
+
+	//
+	//message2:=&notifMessage.Notification
+	//{
+	//	Sender:     self,
+	//	Message:    paymentMessage,
+	//	ReceiverId: paymentReq.UserId,
+	//	Type:       0,
+	//}
 
 	message := &messages.PaymentInfo{
 		PaymentMessage: paymentMessage,

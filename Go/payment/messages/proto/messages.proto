@@ -1,7 +1,7 @@
 syntax ="proto3";
 package messages;
 option go_package="Go/messages";
-
+import "actor.proto";
 
 //message sent to OrderActor about successful payment
 message OrderPaymentInfo{
@@ -11,16 +11,25 @@ message OrderPaymentInfo{
   float accountBalance = 4;
 }
 
-//message sent to NotificationActor
-message PaymentInfo{
-  string paymentMessage = 1;
-}
-
-//message from OrderActor PaymentRequest
-message PaymentRequest {
-  int32 quantity = 1;
-  float pricePerItem = 2;
-  string orderId = 3; //same orderId that needs to be in response from this actor
-  string accountNumber = 4;
-  float accountBalance = 5; //new account balance
-}
+////message sent to NotificationActor
+//message PaymentInfoNotification{
+//  string paymentMessage = 1;
+//}
+//
+////// this is the message the actor on node 1 will send to the remote actor on node 2
+////message Notification {
+////  actor.PID Sender = 1; // this is the PID the remote actor should reply to
+////  string Message = 2;
+////  string ReceiverId = 3;
+////  int32 Type = 4;
+////}
+//
+//
+////message from OrderActor PaymentRequest
+//message PaymentRequest {
+//  int32 quantity = 1;
+//  float pricePerItem = 2;
+//  string orderId = 3; //same orderId that needs to be in response from this actor
+//  string accountNumber = 4;
+//  float accountBalance = 5; //new account balance
+//}

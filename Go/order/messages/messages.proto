@@ -21,6 +21,15 @@ message OrderUpdated_Request {
   string status = 2;
 }
 
+//message PaymentRequest {
+//  int32 quantity = 1;
+//  float pricePerItem = 2;
+//  string orderId = 3; //same orderId that needs to be in response from this actor
+//  string accountNumber = 4;
+//  float accountBalance = 5; //new account balance
+//  string userId = 6;
+//}
+
 message EmptyMessage {
   order.PID Sender = 1;
   string Message = 2;

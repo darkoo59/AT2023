@@ -3,9 +3,11 @@ module github.com/AT-SmFoYcSNaQ/AT2023/Go/payment
 go 1.20
 
 require (
+	github.com/AT-SmFoYcSNaQ/AT2023/Go/notification v0.0.0-00010101000000-000000000000
+	github.com/AT-SmFoYcSNaQ/AT2023/Go/order v0.0.0-00010101000000-000000000000
 	github.com/asynkron/goconsole v0.0.0-20160504192649-bfa12eebf716
 	github.com/asynkron/protoactor-go v0.0.0-20230414121700-22ab527f4f7a
-	google.golang.org/protobuf v1.28.1
+	google.golang.org/protobuf v1.30.0
 )
 
 require (
@@ -34,9 +36,13 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v0.35.0 // indirect
 	go.opentelemetry.io/otel/trace v1.12.0 // indirect
 	golang.org/x/exp v0.0.0-20220518171630-0b5c67f07fdf // indirect
-	golang.org/x/net v0.5.0 // indirect
-	golang.org/x/sys v0.4.0 // indirect
-	golang.org/x/text v0.6.0 // indirect
+	golang.org/x/net v0.10.0 // indirect
+	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/text v0.9.0 // indirect
 	google.golang.org/genproto v0.0.0-20221118155620-16455021b5e6 // indirect
 	google.golang.org/grpc v1.52.3 // indirect
 )
+
+replace github.com/AT-SmFoYcSNaQ/AT2023/Go/notification => ../notification
+
+replace github.com/AT-SmFoYcSNaQ/AT2023/Go/order => ../order
