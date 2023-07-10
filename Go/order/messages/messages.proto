@@ -28,7 +28,11 @@ message EmptyMessage {
 
 // this is the message the remote actor should reply with
 message CheckAvailability_Response {
-  bool isAvailable = 1;
+  string OrderId = 1;
+  bool IsAvailable = 2;
+  int32 Quantity = 3;
+  string ItemName = 4;
+  float ItemPrice = 5;
 }
 
 message PaymentInfo_Response {
