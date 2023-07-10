@@ -24,6 +24,8 @@ func (controller *CustomerController) CustomerRoute(rg *gin.RouterGroup) {
 	router := rg.Group("/customer")
 	router.POST("/order", middleware.DeserializeCustomer(controller.service, controller.logger),
 		controller.Order)
+	router.GET("/items", middleware.DeserializeCustomer(controller.service, controller.logger),
+		controller.GetItems)
 }
 
 func (controller *CustomerController) Order(ctx *gin.Context) {
@@ -53,4 +55,13 @@ func (controller *CustomerController) Order(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusAccepted, gin.H{"status": "ordering process started"})
+}
+
+func (controller *CustomerController) GetItems(ctx *gin.Context) {
+	items := controller.service.GetItemsFromMongoDatabase()
+	if items == nil {
+		ctx.AbortWithStatus(http.StatusNoContent)
+		return
+	}
+	ctx.JSON(http.StatusOK, items)
 }

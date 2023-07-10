@@ -1,11 +1,17 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/config"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/customer_actor"
 	messages "github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/message"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/model"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -56,6 +62,61 @@ func CreateCustomerService(customerActor *customer_actor.CustomerActor, zapLogge
 type OrderBody struct {
 	ItemId   string `json:"itemId"`
 	Quantity int    `json:"quantity"`
+}
+
+type Item struct {
+	Id       primitive.ObjectID
+	Name     string
+	Quantity uint32
+	Price    float64
+}
+
+func (service *CustomerService) GetItemsFromMongoDatabase() *[]Item {
+	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
+	opts := options.Client().ApplyURI("mongodb://localhost:27017").SetServerAPIOptions(serverAPI)
+
+	client, err := mongo.Connect(context.TODO(), opts)
+
+	if err != nil {
+		service.logger.Error(err.Error())
+		return nil
+	}
+
+	pingErr := client.Ping(context.TODO(), readpref.Primary())
+	if pingErr != nil {
+		service.logger.Error(pingErr.Error())
+	}
+
+	service.logger.Info("Connected to mongo database")
+
+	collection := client.Database("inventory").Collection("items")
+	cursor, err := collection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		service.logger.Error(err.Error())
+		return nil
+	}
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+			service.logger.Error(err.Error())
+		}
+	}(cursor, context.TODO())
+
+	var items []Item
+	for cursor.Next(context.TODO()) {
+		var item Item
+		err := cursor.Decode(&item)
+		if err != nil {
+			service.logger.Error(err.Error())
+			return nil
+		}
+		items = append(items, item)
+	}
+	if len(items) == 0 {
+		return nil
+	}
+
+	return &items
 }
 
 func (service *CustomerService) Insert(customer *model.Customer) (id string, err error) {
