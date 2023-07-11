@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/AT-SmFoYcSNaQ/AT2023/Go/inventory/messages"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/inventory/model"
-	"github.com/AT-SmFoYcSNaQ/AT2023/Go/order/messages"
 	"github.com/asynkron/protoactor-go/actor"
 	"github.com/asynkron/protoactor-go/cluster"
 	"github.com/asynkron/protoactor-go/cluster/clusterproviders/automanaged"
@@ -21,6 +21,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
+
+type TestMessage struct {
+	sender *actor.PID
+}
 
 var (
 	dbUri           = "mongodb://localhost:27017"
@@ -44,24 +48,68 @@ var (
 type InventoryActor struct {
 }
 
-func (act *InventoryActor) Receive(ctx actor.Context) {
+var _ messages.InventoryActor = (*InventoryActor)(nil)
+
+func (a *InventoryActor) Init(ctx cluster.GrainContext) {
+	log.Printf("Initializing inventory actor: %s", ctx.Self().GetId())
+}
+
+func (a *InventoryActor) Terminate(ctx cluster.GrainContext) {
+	log.Printf("Terminating ponger: %s", ctx.Self().GetId())
+}
+
+func (a *InventoryActor) ReceiveDefault(ctx cluster.GrainContext) {
+	log.Printf("A plain message is sent from sender: %+v", ctx.Sender())
+
 	switch msg := ctx.Message().(type) {
-	case *actor.Started:
-		log.Println("Inventory actor started")
-	case messages.CheckAvailability_Request:
+	case *messages.CheckAvailability_Request:
+		log.Print("Received CheckAvailability request")
 		available, item := CheckItemAvailability(msg.ItemId, int(msg.Quantity))
-		ctx.Send(msg.Sender, messages.CheckAvailability_Response{
+		response := &messages.CheckAvailability_Response{
 			OrderId:     "????????????????????????????",
 			IsAvailable: available,
 			Quantity:    msg.Quantity,
 			ItemName:    item.Name,
 			ItemPrice:   float32(item.Price),
-		})
+		}
+		ctx.Respond(response)
 	}
 }
 
+func (a *InventoryActor) CheckAvailability(msg *messages.CheckAvailability_Request, ctx cluster.GrainContext) (*messages.CheckAvailability_Response, error) {
+	sender := ctx.Sender()
+	log.Printf("Received CheckAvailability call from sender. Address: %s. ID: %s.", sender.GetAddress(), sender.GetId())
+	available, item := CheckItemAvailability(msg.ItemId, int(msg.Quantity))
+	response := &messages.CheckAvailability_Response{
+		OrderId:     msg.OrderId,
+		IsAvailable: available,
+		Quantity:    msg.Quantity,
+		ItemName:    item.Name,
+		ItemPrice:   float32(item.Price),
+	}
+	return response, nil
+}
+
+// func (act *InventoryActor) Receive(ctx actor.Context) {
+// 	switch msg := ctx.Message().(type) {
+// 	case *actor.Started:
+// 		log.Println("Inventory actor started")
+// 	case messages.CheckAvailability_Request:
+// 		available, item := CheckItemAvailability(msg.ItemId, int(msg.Quantity))
+// 		ctx.Send(msg.Sender, messages.CheckAvailability_Response{
+// 			OrderId:     "????????????????????????????",
+// 			IsAvailable: available,
+// 			Quantity:    msg.Quantity,
+// 			ItemName:    item.Name,
+// 			ItemPrice:   float32(item.Price),
+// 		})
+// 	}
+// }
+
 func NewInventoryActor() actor.Actor {
-	return &InventoryActor{}
+	return &messages.InventoryActorActor{
+		Timeout: 15 * time.Second,
+	}
 }
 
 func CheckItemAvailability(itemId string, quantity int) (bool, *model.Item) {
@@ -97,7 +145,7 @@ func ConnectToDb() {
 
 	pingErr := client.Ping(context.TODO(), readpref.Primary())
 	if pingErr != nil {
-		log.Fatal("Ping, mongoDB: ", err.Error())
+		log.Fatal("Ping, mongoDB: ", pingErr.Error())
 	}
 
 	log.Printf("Connected to mongo database")
@@ -118,15 +166,20 @@ func SeedItems() {
 func main() {
 	port := 20001
 	port1 := 8098
-	if len(os.Args) > 2 {
+	if len(os.Args) >= 2 {
 		port, _ = strconv.Atoi(os.Args[1])
 		port1, _ = strconv.Atoi(os.Args[2])
 	}
 
 	system := actor.NewActorSystem()
+
+	messages.InventoryActorFactory(func() messages.InventoryActor {
+		return &InventoryActor{}
+	})
+
 	remoteConfig := remote.Configure("127.0.0.1", port)
 
-	cp := automanaged.NewWithConfig(1*time.Second, port1, "localhost:8098")
+	cp := automanaged.NewWithConfig(1*time.Second, port1, "localhost:8098", "localhost:9098", "localhost:10098")
 	clusterKind := cluster.NewKind(
 		"inventory-actor",
 		actor.PropsFromProducer(NewInventoryActor),
@@ -143,6 +196,47 @@ func main() {
 
 	ConnectToDb()
 	SeedItems()
+
+	//////////////////////////
+	// testingActorProps := actor.PropsFromFunc(func(ctx actor.Context) {
+	// 	switch msg := ctx.Message().(type) {
+	// 	case TestMessage:
+	// 		checkAvailabilityMsg := &messages.CheckAvailability_Request{
+	// 			ItemId:   "64ad034ac8a392abd514c57a",
+	// 			Quantity: 5,
+	// 		}
+
+	// 		grainPid := cluster.GetCluster(system).Get("inventory-actor-1", "inventory-actor")
+	// 		future := ctx.RequestFuture(grainPid, checkAvailabilityMsg, 10*time.Second)
+	// 		result, err := future.Result()
+	// 		if err != nil {
+	// 			log.Print(err.Error())
+	// 			return
+	// 		}
+	// 		log.Printf("Received %v", result)
+	// 		// client := messages.GetInventoryActorGrainClient(cluster.GetCluster(system), "inventory-actor-1")
+	// 		// response, err := client.CheckAvailability(checkAvailabilityMsg, cluster.WithTimeout(3*time.Second), cluster.WithRetry(3))
+	// 		// if err != nil {
+	// 		// 	log.Print(err.Error())
+	// 		// 	return
+	// 		// }
+	// 		// log.Printf("Received %v", response)
+	// 	case messages.CheckAvailability_Response:
+	// 		log.Print(msg)
+	// 	}
+	// })
+	// testingPid := system.Root.Spawn(testingActorProps)
+
+	// ticker := time.NewTicker(5 * time.Second)
+	// for {
+	// 	select {
+	// 	case <-ticker.C:
+	// 		system.Root.Send(testingPid, TestMessage{sender: testingPid})
+	// 	case <-finishChan:
+	// 		return
+	// 	}
+	// }
+	/////////////////////////
 
 	<-finishChan
 }
