@@ -1,0 +1,24 @@
+syntax = "proto3";
+package messages;
+option go_package = "inventory/messages";
+
+// this is the message the order actor will send to the inventory actor
+message CheckAvailability_Request {
+  string OrderId = 1;
+  string ItemId = 2;
+  int32 Quantity = 3;
+}
+
+// this is the message the remote actor should reply with
+message CheckAvailability_Response {
+  string OrderId = 1;
+  bool IsAvailable = 2;
+  int32 Quantity = 3;
+  string ItemName = 4;
+  float ItemPrice = 5;
+}
+
+
+service InventoryActor {
+  rpc CheckAvailability(CheckAvailability_Request) returns (CheckAvailability_Response) {}
+}
