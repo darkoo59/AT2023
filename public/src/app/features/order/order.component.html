@@ -1,10 +1,20 @@
-<section class="container" *ngLet="{ createOrder: createOrder$ | async } as vm">
+<section
+  class="container"
+  *ngLet="{
+    createOrder: createOrder$ | async,
+    itemList: itemList$ | async,
+    items: getItems$ | async
+  } as vm"
+>
   <h3>Create order</h3>
   <form *ngIf="form" [formGroup]="form" (ngSubmit)="onSubmit()">
     <div>
       <mat-selection-list [multiple]="false" formControlName="item">
-        <mat-list-option *ngFor="let item of itemList" [value]="item.id">
-          {{ item.name }}
+        <mat-list-option *ngFor="let item of vm.itemList" [value]="item.id">
+          <div class="row">
+            <span>{{ item.name }}</span>
+            <span class="price">{{ item.price }}&#8364;</span>
+          </div>
         </mat-list-option>
       </mat-selection-list>
     </div>

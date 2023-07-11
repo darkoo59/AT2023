@@ -1,3 +1,22 @@
-<section class="container">
-  balance
+<section
+  class="container"
+  *ngLet="{
+    updateBalance: updateBalance$ | async,
+    balance: balance$ | async,
+    fetchBalance: fetchBalance$ | async
+  } as vm"
+>
+  <div>
+    <span>Current Balance: </span>
+    <span>{{ vm.balance }}</span>
+  </div>
+  <form *ngIf="form" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div>
+      <mat-form-field appearance="fill" class="form-field">
+        <mat-label>Quantity</mat-label>
+        <input type="number" matInput formControlName="quantity" />
+      </mat-form-field>
+    </div>
+    <button mat-flat-button>Update balance</button>
+  </form>
 </section>

@@ -1,11 +1,17 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/config"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/customer_actor"
 	messages "github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/message"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/model"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -54,8 +60,64 @@ func CreateCustomerService(customerActor *customer_actor.CustomerActor, zapLogge
 }
 
 type OrderBody struct {
-	ItemId   string `json:"itemId"`
-	Quantity int    `json:"quantity"`
+	ItemId   string  `json:"itemId"`
+	Quantity int     `json:"quantity"`
+	Price    float64 `json:"price"`
+}
+
+type Item struct {
+	Id       primitive.ObjectID `bson:"_id" json:"id"`
+	Name     string             `json:"name"`
+	Quantity uint32             `json:"quantity"`
+	Price    float64            `json:"price"`
+}
+
+func (service *CustomerService) GetItemsFromMongoDatabase() *[]Item {
+	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
+	opts := options.Client().ApplyURI("mongodb://localhost:27017").SetServerAPIOptions(serverAPI)
+
+	client, err := mongo.Connect(context.TODO(), opts)
+
+	if err != nil {
+		service.logger.Error(err.Error())
+		return nil
+	}
+
+	pingErr := client.Ping(context.TODO(), readpref.Primary())
+	if pingErr != nil {
+		service.logger.Error(pingErr.Error())
+	}
+
+	service.logger.Info("Connected to mongo database")
+
+	collection := client.Database("inventory").Collection("items")
+	cursor, err := collection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		service.logger.Error(err.Error())
+		return nil
+	}
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+			service.logger.Error(err.Error())
+		}
+	}(cursor, context.TODO())
+
+	var items []Item
+	for cursor.Next(context.TODO()) {
+		var item Item
+		err := cursor.Decode(&item)
+		if err != nil {
+			service.logger.Error(err.Error())
+			return nil
+		}
+		items = append(items, item)
+	}
+	if len(items) == 0 {
+		return nil
+	}
+
+	return &items
 }
 
 func (service *CustomerService) Insert(customer *model.Customer) (id string, err error) {
@@ -97,9 +159,46 @@ func (service *CustomerService) EmailExists(email string) bool {
 	return true
 }
 
-func (service *CustomerService) Order(order *messages.ReceiveOrder_Request) error {
+func (service *CustomerService) Order(orderBody *OrderBody, customerId string) error {
+	balance, err := service.GetBalanceByCustomerId(customerId)
+	order := &messages.ReceiveOrder_Request{
+		UserId:         customerId,
+		ItemId:         orderBody.ItemId,
+		Quantity:       int32(orderBody.Quantity),
+		AccountBalance: balance,
+		PricePerItem:   orderBody.Price,
+	}
+	if err != nil {
+		service.logger.Error(err.Error())
+		return err
+	}
+
 	pid := service.customerActor.Spawn()
 	service.customerActor.Send(pid, order)
 	service.logger.Info("Message sent to customer-actor")
+	return nil
+}
+
+func (service *CustomerService) GetBalanceByCustomerId(customerId string) (float64, error) {
+	var customer model.Customer
+	if err := service.db.First(&customer, "id = ?", customerId).Error; err != nil {
+		return -1, err
+	}
+	return customer.Balance, nil
+}
+
+func (service *CustomerService) UpdateBalanceByCustomerId(customerId string, newBalance float64) error {
+	var customer model.Customer
+	if err := service.db.First(&customer, "id = ?", customerId).Error; err != nil {
+		service.logger.Error("Customer with id: " + customerId + " not found")
+		return err
+	}
+
+	customer.Balance += newBalance
+	if err := service.db.Save(&customer).Error; err != nil {
+		service.logger.Error("Error saving customer with id:" + customerId)
+		return err
+	}
+
 	return nil
 }
