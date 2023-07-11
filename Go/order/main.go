@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/order/model"
+	"github.com/asynkron/protoactor-go/cluster"
+	"github.com/asynkron/protoactor-go/cluster/clusterproviders/automanaged"
+	"github.com/asynkron/protoactor-go/cluster/identitylookup/disthash"
 	"time"
 
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/order/messages"
@@ -17,12 +20,15 @@ type OrderActor struct {
 	remoting *remote.Remote
 	context  *actor.RootContext
 	service  *service.OrderService
+	system   *actor.ActorSystem
 }
 
 func (actor *OrderActor) Receive(context actor.Context) {
 	// Handle incoming messages
+	fmt.Println(context)
 	switch msg := context.Message().(type) {
 	case *messages.ReceiveOrder_Request:
+		fmt.Println("Uslo u case")
 		// Received order from customer
 		order := model.Order{
 			UserId:         msg.UserId,
@@ -33,12 +39,15 @@ func (actor *OrderActor) Receive(context actor.Context) {
 			OrderStatus:    "Pending",
 		}
 		actor.handleOrderReceived(&order, context.Self()) // Pass the order and self reference
-	case messages.CheckAvailability_Response:
+	case *messages.CheckAvailability_Response:
 		// Availability response from inventory actor
-		actor.handleAvailabilityChecked(&msg, context.Self()) // Pass availability status and self reference
-	case paymentMessages.OrderPaymentInfo:
+		fmt.Println(msg)
+		actor.handleAvailabilityChecked(msg, context.Self()) // Pass availability status and self reference
+	case *paymentMessages.OrderPaymentInfo:
 		// Payment response from payment actor
-		actor.handlePaymentInfoReceived(&msg, context.Self()) // Pass payment status and self reference
+		actor.handlePaymentInfoReceived(msg, context.Self()) // Pass payment status and self reference
+	default:
+		fmt.Println(context.Message())
 	}
 }
 
@@ -52,20 +61,18 @@ func (actor *OrderActor) handleOrderReceived(order *model.Order, self *actor.PID
 
 	// Create a message to check availability
 	message := &messages.CheckAvailability_Request{
-		Sender:   self,
 		ItemId:   order.ItemId,
 		Quantity: int32(order.Quantity),
 		OrderId:  orderCreated,
 	}
 
-	// Spawn the inventory actor
-	spawnResponse, err := actor.remoting.SpawnNamed("127.0.0.1:8098", "inventory-actor", "inventory-actor", time.Second)
+	inventoryGrain := cluster.GetCluster(actor.system).Get("inventory-1", "inventory-actor")
+	responseFuture := actor.context.RequestFuture(inventoryGrain, &message, time.Second*10)
+	response, err := responseFuture.Result()
 	if err != nil {
 		panic(err)
 	}
-
-	// Send the availability request to the inventory actor
-	actor.context.Send(spawnResponse.Pid, message)
+	fmt.Println(response)
 	fmt.Println("Sent message to the inventory actor!")
 }
 
@@ -90,7 +97,7 @@ func (actor *OrderActor) handleAvailabilityChecked(request *messages.CheckAvaila
 		if err != nil {
 			return
 		}
-		actor.context.Send(spawnResponse.Pid, &messages.OrderUpdated_Request{Sender: self, Status: "Pending"})
+		actor.context.Send(spawnResponse.Pid, &messages.OrderUpdated_Request{Status: "Pending"})
 		actor.prepareOrder(10 * time.Second)
 		orderUpdated, err = actor.service.GetById(request.OrderId)
 		if err != nil {
@@ -101,12 +108,11 @@ func (actor *OrderActor) handleAvailabilityChecked(request *messages.CheckAvaila
 		if err != nil {
 			return
 		}
-		actor.context.Send(spawnResponse.Pid, &messages.OrderUpdated_Request{Sender: self, Status: "Prepared"})
+		actor.context.Send(spawnResponse.Pid, &messages.OrderUpdated_Request{Status: "Prepared"})
 		actor.processPayment(self, request) // Pass self reference for payment actor
 	} else {
 		// Item is out of stock
 		message := &messages.OrderUpdated_Request{
-			Sender: self,
 			Status: "OutOfStock",
 		}
 
@@ -149,7 +155,6 @@ func (actor *OrderActor) handlePaymentInfoReceived(request *paymentMessages.Orde
 	}
 
 	message := &messages.OrderUpdated_Request{
-		Sender: self,
 		Status: status,
 	}
 
@@ -199,17 +204,39 @@ func main() {
 	system := actor.NewActorSystem()
 	orderService := service.CreateOrderService()
 
-	// Configure and start remote communication
-	remoteConfig := remote.Configure("127.0.0.1", 8090)
-	remoting := remote.NewRemote(system, remoteConfig)
-	remoting.Start()
+	// Configure and start remote communication with actors
+	remoteConfig := remote.Configure("192.168.1.15", 8090)
+	//remoting := remote.NewRemote(system, remoteConfig)
+	//
+	//remoting.Start()
+
+	// Configure cluster on top of the above remote env
+	// This member uses port 6330 for cluster provider, and add ponger member -- localhost:6331 -- as member.
+	// With automanaged implementation, one must list up all known members at first place to ping each other.
+	// Note that this member itself is not registered as a member member because this only works as a client.
+	lookup := disthash.New()
+	cp := automanaged.NewWithConfig(10*time.Second, 6330, "192.168.1.16:8098", "192.168.1.16:9098", "192.168.1.16:10098")
+	clusterConfig := cluster.Configure("cluster-inventory", cp, lookup, remoteConfig)
+	c := cluster.New(system, clusterConfig)
+	// Start as a client, not as a cluster member.
+	c.StartClient()
 
 	// Get the root context of the actor system
 	context := system.Root
 
 	// Create the order actor and register it with the remote system
-	orderActorProps := actor.PropsFromProducer(func() actor.Actor { return &OrderActor{remoting: remoting, context: context, service: orderService} })
-	remoting.Register("order-actor", orderActorProps)
+	orderActorProps := actor.PropsFromProducer(func() actor.Actor {
+		return &OrderActor{remoting: c.Remote, context: context, service: orderService, system: system}
+	})
+	c.Remote.Register("order-actor", orderActorProps)
 
+	//pid := system.Root.Spawn(orderActorProps)
+	//system.Root.Send(pid, &messages.ReceiveOrder_Request{
+	//	UserId:         "64add14732e4923ab54924d0",
+	//	ItemId:         "64add14732e4923ab5492460",
+	//	Quantity:       2,
+	//	AccountBalance: 100,
+	//	PricePerItem:   5,
+	//})
 	console.ReadLine()
 }

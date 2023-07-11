@@ -1,7 +1,6 @@
 syntax = "proto3";
 package messages;
 option go_package = "order/messages";
-import "order.proto";
 
 message ReceiveOrder_Request {
   string userId = 1;
@@ -13,14 +12,12 @@ message ReceiveOrder_Request {
 
 // this is the message the order actor will send to the inventory actor
 message CheckAvailability_Request {
-  order.PID Sender = 1; // this is the PID the remote actor should reply to
-  string orderId = 2;
-  string itemId = 3;
-  int32 quantity = 4;
+  string OrderId = 1;
+  string ItemId = 2;
+  int32 Quantity = 3;
 }
 
 message OrderUpdated_Request {
-  order.PID Sender = 1;
   string status = 2;
 }
 
@@ -34,7 +31,6 @@ message PaymentReq {
 }
 
 message EmptyMessage {
-  order.PID Sender = 1;
   string Message = 2;
 }
 
