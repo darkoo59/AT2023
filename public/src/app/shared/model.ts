@@ -7,4 +7,5 @@ export interface User {
 export interface Item {
   id: string;
   name: string;
+  price: number;
 }

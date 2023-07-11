@@ -4,7 +4,10 @@
     <div>
       <mat-selection-list [multiple]="false" formControlName="item">
         <mat-list-option *ngFor="let item of itemList" [value]="item.id">
-          {{ item.name }}
+          <div class="row">
+            <span>{{ item.name }}</span>
+            <span class="price">{{ item.price }}&#8364;</span>
+          </div>
         </mat-list-option>
       </mat-selection-list>
     </div>

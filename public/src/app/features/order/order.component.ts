@@ -32,21 +32,22 @@ export class OrderComponent implements OnInit {
 
   constructor(private orderService: OrderService, private notificationService: NotificationService) {}
 
+
+
   ngOnInit(): void {
-    for (let i = 1; i <= 10; i++) {
-      this.itemList.push({
-        id: i + '',
-        name: 'item_' + i,
-      });
-    }
+    this.orderService.getItems().subscribe(items => {
+      this.itemList = items;
+    })
   }
 
   onSubmit() {
     if (this.form.invalid) return;
     const raw = this.form.getRawValue();
+    console.log(raw.item)
     this.createOrder$.next({
       quantity: raw.quantity,
       itemId: raw.item[0],
+      price: raw.item
     });
   }
 }

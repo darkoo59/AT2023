@@ -65,10 +65,10 @@ type OrderBody struct {
 }
 
 type Item struct {
-	Id       primitive.ObjectID
-	Name     string
-	Quantity uint32
-	Price    float64
+	Id       primitive.ObjectID `json:"id"`
+	Name     string             `json:"name"`
+	Quantity uint32             `json:"quantity"`
+	Price    float64            `json:"price"`
 }
 
 func (service *CustomerService) GetItemsFromMongoDatabase() *[]Item {
