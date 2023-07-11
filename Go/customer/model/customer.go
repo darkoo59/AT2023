@@ -11,6 +11,7 @@ type Customer struct {
 	ID       uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key"`
 	Email    string    `gorm:"uniqueIndex;not null"`
 	Password string    `gorm:"not null"`
+	Balance  float64
 }
 
 type Customers []*Customers

@@ -7,6 +7,8 @@ message ReceiveOrder_Request {
   string userId = 1;
   string itemId = 2;
   int32 quantity = 3;
+  double accountBalance = 4;
+  double pricePerItem = 5;
 }
 
 message Payment_Request {

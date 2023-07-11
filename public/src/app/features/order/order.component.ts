@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { EMPTY, Subject, catchError, switchMap, tap } from 'rxjs';
+import { EMPTY, Observable, Subject, catchError, switchMap, tap } from 'rxjs';
 import { NotificationService } from 'src/app/core/services/notification.service';
 import {
   CreateOrderDto,
@@ -13,40 +13,39 @@ import { Item } from 'src/app/shared/model';
   templateUrl: './order.component.html',
   styleUrls: ['./order.component.scss'],
 })
-export class OrderComponent implements OnInit {
+export class OrderComponent {
   form: FormGroup = new FormGroup({
     item: new FormControl(null, Validators.required),
     quantity: new FormControl(null, [Validators.required, Validators.min(1)]),
   });
-  itemList: Item[] = [];
+  getItems$: Observable<any> = this.orderService.getItems();
+  itemList$: Observable<Item[] | null> = this.orderService.data$;
   createOrder$: Subject<CreateOrderDto> = new Subject<CreateOrderDto>().pipe(
     switchMap((data: CreateOrderDto) =>
-      this.orderService.createOrder(data).pipe(
-        tap(res => {
-          this.form.reset()
-          this.notificationService.showSuccess(res.status);
-        }),
-        catchError(() => EMPTY))
+      this.itemList$.pipe(
+        switchMap((items: Item[] | null) => {
+          data = { ...data, price: items?.find(item => item.id === data.itemId)?.price ?? 0 }
+          return this.orderService.createOrder(data).pipe(
+            tap(res => {
+              this.form.reset()
+              this.notificationService.showSuccess(res.status);
+            }),
+            catchError(() => EMPTY)
+          )
+        })
+      )
     )
   ) as Subject<CreateOrderDto>;
-
-  constructor(private orderService: OrderService, private notificationService: NotificationService) {}
-
-  ngOnInit(): void {
-    for (let i = 1; i <= 10; i++) {
-      this.itemList.push({
-        id: i + '',
-        name: 'item_' + i,
-      });
-    }
-  }
+  
+  constructor(private orderService: OrderService, private notificationService: NotificationService) { }
 
   onSubmit() {
     if (this.form.invalid) return;
     const raw = this.form.getRawValue();
+    const itemId = raw.item[0];
     this.createOrder$.next({
       quantity: raw.quantity,
-      itemId: raw.item[0],
+      itemId: itemId
     });
   }
 }

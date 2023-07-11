@@ -1,3 +1,13 @@
 .form-field {
   width: 300px;
 }
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.price {
+  color: #00C853;
+}
