@@ -25,15 +25,31 @@ func (controller *CustomerController) CustomerRoute(rg *gin.RouterGroup) {
 		controller.Order)
 	router.GET("/items", middleware.DeserializeCustomer(controller.service, controller.logger),
 		controller.GetItems)
+	router.GET("/balance", middleware.DeserializeCustomer(controller.service, controller.logger),
+		controller.GetBalance)
+	router.PATCH("/balance", middleware.DeserializeCustomer(controller.service, controller.logger),
+		controller.UpdateBalance)
 }
 
-func (controller *CustomerController) Order(ctx *gin.Context) {
+func (controller *CustomerController) getCustomerIdFromContext(ctx *gin.Context) (string, bool) {
 	customer, exists := ctx.Value("currentCustomer").(*model.Customer)
 	if !exists {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "you are not logged in"})
-		return
+		return "", true
 	}
 	customerId := fmt.Sprint(customer.ID)
+	return customerId, false
+}
+
+type UpdateBalanceRequest struct {
+	Balance float64 `json:"balance"`
+}
+
+func (controller *CustomerController) Order(ctx *gin.Context) {
+	customerId, notLoggedIn := controller.getCustomerIdFromContext(ctx)
+	if notLoggedIn {
+		return
+	}
 
 	var orderBody *service.OrderBody
 	if err := ctx.ShouldBindJSON(&orderBody); err != nil {
@@ -57,4 +73,38 @@ func (controller *CustomerController) GetItems(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, items)
+}
+
+func (controller *CustomerController) GetBalance(ctx *gin.Context) {
+	customerId, notLoggedIn := controller.getCustomerIdFromContext(ctx)
+	if notLoggedIn {
+		return
+	}
+
+	balance, err := controller.service.GetBalanceByCustomerId(customerId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, balance)
+}
+
+func (controller *CustomerController) UpdateBalance(ctx *gin.Context) {
+	customerId, notLoggedIn := controller.getCustomerIdFromContext(ctx)
+	if notLoggedIn {
+		return
+	}
+
+	var newBalance *UpdateBalanceRequest
+
+	if err := ctx.ShouldBindJSON(&newBalance); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "failed to parse JSON body"})
+		return
+	}
+
+	if err := controller.service.UpdateBalanceByCustomerId(customerId, newBalance.Balance); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 }

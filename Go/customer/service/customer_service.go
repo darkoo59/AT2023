@@ -160,13 +160,17 @@ func (service *CustomerService) EmailExists(email string) bool {
 }
 
 func (service *CustomerService) Order(orderBody *OrderBody, customerId string) error {
-	balance := service.GetBalanceByCustomerId(customerId)
+	balance, err := service.GetBalanceByCustomerId(customerId)
 	order := &messages.ReceiveOrder_Request{
 		UserId:         customerId,
 		ItemId:         orderBody.ItemId,
 		Quantity:       int32(orderBody.Quantity),
 		AccountBalance: balance,
 		PricePerItem:   orderBody.Price,
+	}
+	if err != nil {
+		service.logger.Error(err.Error())
+		return err
 	}
 
 	pid := service.customerActor.Spawn()
@@ -175,10 +179,26 @@ func (service *CustomerService) Order(orderBody *OrderBody, customerId string) e
 	return nil
 }
 
-func (service *CustomerService) GetBalanceByCustomerId(customerId string) float64 {
+func (service *CustomerService) GetBalanceByCustomerId(customerId string) (float64, error) {
 	var customer model.Customer
 	if err := service.db.First(&customer, "id = ?", customerId).Error; err != nil {
-		return 0
+		return -1, err
 	}
-	return customer.Balance
+	return customer.Balance, nil
+}
+
+func (service *CustomerService) UpdateBalanceByCustomerId(customerId string, newBalance float64) error {
+	var customer model.Customer
+	if err := service.db.First(&customer, "id = ?", customerId).Error; err != nil {
+		service.logger.Error("Customer with id: " + customerId + " not found")
+		return err
+	}
+
+	customer.Balance += newBalance
+	if err := service.db.Save(&customer).Error; err != nil {
+		service.logger.Error("Error saving customer with id:" + customerId)
+		return err
+	}
+
+	return nil
 }
