@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/order/messages"
+	paymentMessages "github.com/AT-SmFoYcSNaQ/AT2023/Go/payment/messages/Go/messages"
 	console "github.com/asynkron/goconsole"
 	"github.com/asynkron/protoactor-go/actor"
 	"github.com/asynkron/protoactor-go/remote"
@@ -35,9 +36,9 @@ func (actor *OrderActor) Receive(context actor.Context) {
 	case *messages.CheckAvailability_Response:
 		// Availability response from inventory actor
 		actor.handleAvailabilityChecked(msg.IsAvailable, context.Self()) // Pass availability status and self reference
-	case *messages.PaymentInfo_Response:
+	case paymentMessages.OrderPaymentInfo:
 		// Payment response from payment actor
-		actor.handlePaymentInfoReceived(msg.Successful, context.Self()) // Pass payment status and self reference
+		actor.handlePaymentInfoReceived(&msg, context.Self()) // Pass payment status and self reference
 	}
 }
 
@@ -87,7 +88,7 @@ func (actor *OrderActor) handleAvailabilityChecked(isAvailable bool, self *actor
 	}
 }
 
-func (actor *OrderActor) handlePaymentInfoReceived(successful bool, self *actor.PID) {
+func (actor *OrderActor) handlePaymentInfoReceived(request *paymentMessages.OrderPaymentInfo, self *actor.PID) {
 	fmt.Println("Received message from payment actor!")
 
 	// Spawn the notification actor
@@ -97,11 +98,11 @@ func (actor *OrderActor) handlePaymentInfoReceived(successful bool, self *actor.
 	}
 
 	status := "PaymentFailed"
-	if successful {
+	if request.IsSuccessful {
 		status = "Payment"
 	}
 
-	message := &messages.OrderUpdated_Request{
+	message := &messages.PaymentRequest{
 		Sender: self,
 		Status: status,
 	}
@@ -122,7 +123,7 @@ func (actor *OrderActor) processPayment(self *actor.PID) {
 		panic(err)
 	}
 
-	message := &messages.EmptyMessage{Sender: self, Message: ""}
+	message := &messages.PaymentRequest{Quantity: }
 	actor.context.Send(spawnResponse.Pid, message)
 }
 
