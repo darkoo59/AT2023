@@ -81,7 +81,7 @@ func (a *InventoryActor) CheckAvailability(msg *messages.CheckAvailability_Reque
 	log.Printf("Received CheckAvailability call from sender. Address: %s. ID: %s.", sender.GetAddress(), sender.GetId())
 	available, item := CheckItemAvailability(msg.ItemId, int(msg.Quantity))
 	response := &messages.CheckAvailability_Response{
-		OrderId:     "????????????????????????????",
+		OrderId:     msg.OrderId,
 		IsAvailable: available,
 		Quantity:    msg.Quantity,
 		ItemName:    item.Name,

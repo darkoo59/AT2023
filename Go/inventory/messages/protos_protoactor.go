@@ -55,7 +55,7 @@ func GetInventoryActorKind(opts ...actor.PropsOption) *cluster.Kind {
 }
 
 // GetInventoryActorKind instantiates a new cluster.Kind for InventoryActor
-func NewInventoryActorKind(factory func() InventoryActor, timeout time.Duration, opts ...actor.PropsOption) *cluster.Kind {
+func NewInventoryActorKind(factory func() InventoryActor, timeout time.Duration ,opts ...actor.PropsOption) *cluster.Kind {
 	xInventoryActorFactory = factory
 	props := actor.PropsFromProducer(func() actor.Actor {
 		return &InventoryActorActor{
@@ -72,12 +72,13 @@ type InventoryActor interface {
 	Terminate(ctx cluster.GrainContext)
 	ReceiveDefault(ctx cluster.GrainContext)
 	CheckAvailability(*CheckAvailability_Request, cluster.GrainContext) (*CheckAvailability_Response, error)
+	
 }
 
 // InventoryActorGrainClient holds the base data for the InventoryActorGrain
 type InventoryActorGrainClient struct {
-	Identity string
-	cluster  *cluster.Cluster
+	Identity      string
+	cluster *cluster.Cluster
 }
 
 // CheckAvailability requests the execution on to the cluster with CallOptions
@@ -106,6 +107,7 @@ func (g *InventoryActorGrainClient) CheckAvailability(r *CheckAvailability_Reque
 	}
 }
 
+
 // InventoryActorActor represents the actor structure
 type InventoryActorActor struct {
 	ctx     cluster.GrainContext
@@ -125,7 +127,7 @@ func (a *InventoryActorActor) Receive(ctx actor.Context) {
 		if a.Timeout > 0 {
 			ctx.SetReceiveTimeout(a.Timeout)
 		}
-	case *actor.ReceiveTimeout:
+	case *actor.ReceiveTimeout:		
 		ctx.Poison(ctx.Self())
 	case *actor.Stopped:
 		a.inner.Terminate(a.ctx)
@@ -158,7 +160,7 @@ func (a *InventoryActorActor) Receive(ctx actor.Context) {
 			}
 			resp := &cluster.GrainResponse{MessageData: bytes}
 			ctx.Respond(resp)
-
+		
 		}
 	default:
 		a.inner.ReceiveDefault(a.ctx)
