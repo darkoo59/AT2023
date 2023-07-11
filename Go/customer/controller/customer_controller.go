@@ -2,7 +2,6 @@ package controller
 
 import (
 	"fmt"
-	messages "github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/message"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/middleware"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/model"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/service"
@@ -42,13 +41,7 @@ func (controller *CustomerController) Order(ctx *gin.Context) {
 		return
 	}
 
-	order := &messages.ReceiveOrder_Request{
-		UserId:   customerId,
-		ItemId:   orderBody.ItemId,
-		Quantity: int32(orderBody.Quantity),
-	}
-
-	err := controller.service.Order(order)
+	err := controller.service.Order(orderBody, customerId)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

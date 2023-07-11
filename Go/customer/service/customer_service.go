@@ -60,12 +60,13 @@ func CreateCustomerService(customerActor *customer_actor.CustomerActor, zapLogge
 }
 
 type OrderBody struct {
-	ItemId   string `json:"itemId"`
-	Quantity int    `json:"quantity"`
+	ItemId   string  `json:"itemId"`
+	Quantity int     `json:"quantity"`
+	Price    float64 `json:"price"`
 }
 
 type Item struct {
-	Id       primitive.ObjectID `json:"id"`
+	Id       primitive.ObjectID `bson:"_id" json:"id"`
 	Name     string             `json:"name"`
 	Quantity uint32             `json:"quantity"`
 	Price    float64            `json:"price"`
@@ -158,9 +159,26 @@ func (service *CustomerService) EmailExists(email string) bool {
 	return true
 }
 
-func (service *CustomerService) Order(order *messages.ReceiveOrder_Request) error {
+func (service *CustomerService) Order(orderBody *OrderBody, customerId string) error {
+	balance := service.GetBalanceByCustomerId(customerId)
+	order := &messages.ReceiveOrder_Request{
+		UserId:         customerId,
+		ItemId:         orderBody.ItemId,
+		Quantity:       int32(orderBody.Quantity),
+		AccountBalance: balance,
+		PricePerItem:   orderBody.Price,
+	}
+
 	pid := service.customerActor.Spawn()
 	service.customerActor.Send(pid, order)
 	service.logger.Info("Message sent to customer-actor")
 	return nil
+}
+
+func (service *CustomerService) GetBalanceByCustomerId(customerId string) float64 {
+	var customer model.Customer
+	if err := service.db.First(&customer, "id = ?", customerId).Error; err != nil {
+		return 0
+	}
+	return customer.Balance
 }
