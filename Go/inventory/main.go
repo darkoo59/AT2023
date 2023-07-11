@@ -66,7 +66,7 @@ func (a *InventoryActor) ReceiveDefault(ctx cluster.GrainContext) {
 		log.Print("Received CheckAvailability request")
 		available, item := CheckItemAvailability(msg.ItemId, int(msg.Quantity))
 		response := &messages.CheckAvailability_Response{
-			OrderId:     "????????????????????????????",
+			OrderId:     msg.OrderId,
 			IsAvailable: available,
 			Quantity:    msg.Quantity,
 			ItemName:    item.Name,
@@ -89,22 +89,6 @@ func (a *InventoryActor) CheckAvailability(msg *messages.CheckAvailability_Reque
 	}
 	return response, nil
 }
-
-// func (act *InventoryActor) Receive(ctx actor.Context) {
-// 	switch msg := ctx.Message().(type) {
-// 	case *actor.Started:
-// 		log.Println("Inventory actor started")
-// 	case messages.CheckAvailability_Request:
-// 		available, item := CheckItemAvailability(msg.ItemId, int(msg.Quantity))
-// 		ctx.Send(msg.Sender, messages.CheckAvailability_Response{
-// 			OrderId:     "????????????????????????????",
-// 			IsAvailable: available,
-// 			Quantity:    msg.Quantity,
-// 			ItemName:    item.Name,
-// 			ItemPrice:   float32(item.Price),
-// 		})
-// 	}
-// }
 
 func NewInventoryActor() actor.Actor {
 	return &messages.InventoryActorActor{
@@ -196,47 +180,6 @@ func main() {
 
 	ConnectToDb()
 	SeedItems()
-
-	//////////////////////////
-	// testingActorProps := actor.PropsFromFunc(func(ctx actor.Context) {
-	// 	switch msg := ctx.Message().(type) {
-	// 	case TestMessage:
-	// 		checkAvailabilityMsg := &messages.CheckAvailability_Request{
-	// 			ItemId:   "64ad034ac8a392abd514c57a",
-	// 			Quantity: 5,
-	// 		}
-
-	// 		grainPid := cluster.GetCluster(system).Get("inventory-actor-1", "inventory-actor")
-	// 		future := ctx.RequestFuture(grainPid, checkAvailabilityMsg, 10*time.Second)
-	// 		result, err := future.Result()
-	// 		if err != nil {
-	// 			log.Print(err.Error())
-	// 			return
-	// 		}
-	// 		log.Printf("Received %v", result)
-	// 		// client := messages.GetInventoryActorGrainClient(cluster.GetCluster(system), "inventory-actor-1")
-	// 		// response, err := client.CheckAvailability(checkAvailabilityMsg, cluster.WithTimeout(3*time.Second), cluster.WithRetry(3))
-	// 		// if err != nil {
-	// 		// 	log.Print(err.Error())
-	// 		// 	return
-	// 		// }
-	// 		// log.Printf("Received %v", response)
-	// 	case messages.CheckAvailability_Response:
-	// 		log.Print(msg)
-	// 	}
-	// })
-	// testingPid := system.Root.Spawn(testingActorProps)
-
-	// ticker := time.NewTicker(5 * time.Second)
-	// for {
-	// 	select {
-	// 	case <-ticker.C:
-	// 		system.Root.Send(testingPid, TestMessage{sender: testingPid})
-	// 	case <-finishChan:
-	// 		return
-	// 	}
-	// }
-	/////////////////////////
 
 	<-finishChan
 }
