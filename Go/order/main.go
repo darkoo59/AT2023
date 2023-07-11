@@ -27,7 +27,7 @@ func (actor *OrderActor) Receive(context actor.Context) {
 		order := model.Order{
 			UserId:         msg.UserId,
 			ItemId:         msg.ItemId,
-			Quantity:       msg.Quantity,
+			Quantity:       int(msg.Quantity),
 			AccountBalance: msg.AccountBalance,
 			PricePerItem:   msg.PricePerItem,
 			OrderStatus:    "Pending",
@@ -54,7 +54,7 @@ func (actor *OrderActor) handleOrderReceived(order *model.Order, self *actor.PID
 	message := &messages.CheckAvailability_Request{
 		Sender:   self,
 		ItemId:   order.ItemId,
-		Quantity: order.Quantity,
+		Quantity: int32(order.Quantity),
 		OrderId:  orderCreated,
 	}
 
@@ -175,7 +175,7 @@ func (actor *OrderActor) processPayment(self *actor.PID, request *messages.Check
 	}
 
 	message := &messages.PaymentReq{
-		Quantity:       order.Quantity,
+		Quantity:       int32(order.Quantity),
 		PricePerItem:   request.ItemPrice,
 		OrderId:        request.OrderId,
 		AccountBalance: float32(order.AccountBalance),
