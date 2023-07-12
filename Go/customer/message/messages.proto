@@ -1,6 +1,6 @@
 syntax = "proto3";
-package message;
-option go_package = "Go/messages";
+package messages;
+option go_package = "consumer/messages";
 
 message ReceiveOrder_Request {
   string userId = 1;
@@ -14,10 +14,6 @@ message Payment_Request {
   string userId = 1;
   string accountNumber = 2;
   double accountBalance = 3;
-}
-
-message EmptyMessage {
-  string Message = 1;
 }
 
 message Notification {
