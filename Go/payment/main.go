@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	orderMessage "github.com/AT-SmFoYcSNaQ/AT2023/Go/order/messages"
-	"github.com/AT-SmFoYcSNaQ/AT2023/Go/payment/messages/Go/messages"
 	console "github.com/asynkron/goconsole"
 	"github.com/asynkron/protoactor-go/actor"
 	"github.com/asynkron/protoactor-go/remote"
@@ -57,7 +56,7 @@ func (actor *PaymentActor) handlePaymentRequest(paymentReq PaymentReq, self *act
 
 func (actor *PaymentActor) sendPaymentInfo(paymentReq PaymentReq, isSuccessful bool) {
 	fmt.Println("Sending payment info to order actor")
-	message := &messages.OrderPaymentInfo{
+	message := &orderMessage.OrderPaymentInfo{
 		OrderId:        paymentReq.OrderId,
 		IsSuccessful:   isSuccessful,
 		AccountNumber:  paymentReq.AccountNumber,
@@ -111,16 +110,40 @@ func main() {
 	system := actor.NewActorSystem()
 
 	// Configure and start remote communication
-	remoteConfig := remote.Configure("127.0.0.1", 8093)
+	remoteConfig := remote.Configure("192.168.1.34", 8093)
 	remoting := remote.NewRemote(system, remoteConfig)
+
 	remoting.Start()
 
 	// Get the root context of the actor system
 	context := system.Root
 
 	// Create the payment actor and register it with the remote system
-	orderActorProps := actor.PropsFromProducer(func() actor.Actor { return &PaymentActor{remoting: remoting, context: context} })
-	remoting.Register("payment-actor", orderActorProps)
+	paymentActorProps := actor.PropsFromProducer(func() actor.Actor { return &PaymentActor{remoting: remoting, context: context} })
 
+	remoting.Register("payment-actor", paymentActorProps)
+
+	spawnResponse, err := remoting.SpawnNamed("192.168.1.48:8092", "notification-actor", "notification-actor", time.Second)
+
+	if err != nil {
+		panic(err)
+		return
+	}
+
+	paymentMessage := "NOTIFICATIONNOTIFICATION"
+
+	messageContent := &notifMessage.Message{
+		Content: paymentMessage,
+		Action:  "",
+		OrderId: "",
+	}
+
+	message := &notifMessage.Notification{
+		Message:    messageContent,
+		ReceiverId: "5a543ba3-9ee2-48f9-b3db-d85c443a1512",
+	}
+
+	spawnedPID := spawnResponse.Pid
+	context.Send(spawnedPID, message)
 	console.ReadLine()
 }
