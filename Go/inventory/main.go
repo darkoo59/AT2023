@@ -161,9 +161,9 @@ func main() {
 		return &InventoryActor{}
 	})
 
-	remoteConfig := remote.Configure("192.168.1.16", port)
+	remoteConfig := remote.Configure("192.168.1.13", port)
 
-	cp := automanaged.NewWithConfig(5*time.Second, port1, "192.168.1.16:8098", "192.168.1.16:9098", "192.168.1.16:10098")
+	cp := automanaged.NewWithConfig(5*time.Second, port1, "192.168.1.13:8098", "192.168.1.13:9098", "192.168.1.13:10098")
 	clusterKind := cluster.NewKind(
 		"inventory-actor",
 		actor.PropsFromProducer(NewInventoryActor),

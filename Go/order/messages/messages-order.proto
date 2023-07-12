@@ -43,7 +43,7 @@ message PaymentReq {
 }
 
 message EmptyMessage {
-  string Message = 2;
+  string Message = 1;
 }
 
 // this is the message the remote actor should reply with
