@@ -24,8 +24,12 @@ export class NotificationService {
       tap((response: any) => {
         const res = response as Notification;
         console.log('Received message from server:', res)
-        this.showNotification(res.Content)
-        this.modalService.openConfirmDialog("Finish order", "aa", () => console.log(123));
+        if(res.Action === "OutOfStock"){
+          this.showError(res.Content);
+        }else if(res.Action === "Prepared") {
+          this.showNotification(res.Content)
+          this.modalService.openConfirmDialog("Finish order", "Would you like to proceed with payments?", () => console.log(123));
+        }
       }),
       catchError((error) => {
         console.error('An error occurred:', error)
