@@ -1,7 +1,6 @@
 syntax ="proto3";
 package messages;
-option go_package="Go/messages";
-import "actor.proto";
+option go_package="payment/messages";
 
 //message sent to OrderActor about successful payment
 message OrderPaymentInfo{
@@ -10,6 +9,17 @@ message OrderPaymentInfo{
   string accountNumber = 3;
   float accountBalance = 4;
 }
+
+message Notification {
+  Message Message = 1;
+  string ReceiverId = 2;
+}
+
+message Message {
+  string Content = 1;
+  string Action = 2;
+  string OrderId = 3;
+};
 
 ////message sent to NotificationActor
 //message PaymentInfoNotification{
