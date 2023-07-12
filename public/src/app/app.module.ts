@@ -9,6 +9,7 @@ import { NavigationModule } from './core/navigation/navigation.module';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ToastrModule } from 'ngx-toastr';
 import { AuthInterceptor } from './core/interceptors/auth-interceptor.service';
+import { ConfirmDialogModule } from './shared/confirm-dialog/confirm-dialog.module';
 
 @NgModule({
   declarations: [
@@ -23,6 +24,7 @@ import { AuthInterceptor } from './core/interceptors/auth-interceptor.service';
     NavigationModule,
     HttpClientModule,
     ToastrModule.forRoot(),
+    ConfirmDialogModule
   ],
   providers: [
     {

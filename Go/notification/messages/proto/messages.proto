@@ -1,17 +1,10 @@
 syntax = "proto3";
 package messages;
-option go_package = "vezbe3/messages";
-//import "actor.proto"; // we need to import actor.proto, so our messages can include PID's
+option go_package = "notification/messages";
 
-// this is the message the actor on node 1 will send to the remote actor on node 2
 message Notification {
-  Message Message = 2;
-  string ReceiverId = 3;
-}
-
-// this is the message the remote actor should reply with
-message Response {
-  string Message = 1;
+  Message Message = 1;
+  string ReceiverId = 2;
 }
 
 message Message {

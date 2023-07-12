@@ -173,8 +173,7 @@ func (service *CustomerService) Order(orderBody *OrderBody, customerId string) e
 		return err
 	}
 
-	pid := service.customerActor.Spawn()
-	service.customerActor.Send(pid, order)
+	service.customerActor.Send(service.customerActor.PID, order)
 	service.logger.Info("Message sent to customer-actor")
 	return nil
 }

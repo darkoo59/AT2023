@@ -2,15 +2,15 @@ package main
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/order/model"
 	"github.com/asynkron/protoactor-go/cluster"
 	"github.com/asynkron/protoactor-go/cluster/clusterproviders/automanaged"
 	"github.com/asynkron/protoactor-go/cluster/identitylookup/disthash"
-	"time"
 
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/order/messages"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/order/service"
-	paymentMessages "github.com/AT-SmFoYcSNaQ/AT2023/Go/payment/messages/Go/messages"
 	console "github.com/asynkron/goconsole"
 	"github.com/asynkron/protoactor-go/actor"
 	"github.com/asynkron/protoactor-go/remote"
@@ -40,7 +40,7 @@ func (actor *OrderActor) Receive(context actor.Context) {
 			OrderStatus:    "Pending",
 		}
 		actor.handleOrderReceived(&order, context.Self()) // Pass the order and self reference
-	case *paymentMessages.OrderPaymentInfo:
+	case *messages.OrderPaymentInfo:
 		// Payment response from payment actor
 		actor.handlePaymentInfoReceived(msg) // Pass payment status and self reference
 	case *messages.EmptyMessage:
@@ -171,7 +171,7 @@ func (actor *OrderActor) handleAvailabilityChecked(request *messages.CheckAvaila
 	//}
 }
 
-func (actor *OrderActor) handlePaymentInfoReceived(request *paymentMessages.OrderPaymentInfo) {
+func (actor *OrderActor) handlePaymentInfoReceived(request *messages.OrderPaymentInfo) {
 	fmt.Println("Received message from payment actor!")
 
 	// Spawn the notification actor
@@ -275,13 +275,13 @@ func main() {
 	c.Remote.Register("order-actor", orderActorProps)
 	//remoting.Register("order-actor", orderActorProps)
 
-	pid := system.Root.Spawn(orderActorProps)
-	system.Root.Send(pid, &messages.ReceiveOrder_Request{
-		UserId:         "64add14732e4923ab54924d0",
-		ItemId:         "64add14732e4923ab5492460",
-		Quantity:       2,
-		AccountBalance: 100,
-		PricePerItem:   5,
-	})
+	//pid := system.Root.Spawn(orderActorProps)
+	//system.Root.Send(pid, &messages.ReceiveOrder_Request{
+	//	UserId:         "64add14732e4923ab54924d0",
+	//	ItemId:         "64add14732e4923ab5492460",
+	//	Quantity:       2,
+	//	AccountBalance: 100,
+	//	PricePerItem:   5,
+	//})
 	console.ReadLine()
 }
