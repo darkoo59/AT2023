@@ -10,7 +10,7 @@ type Order struct {
 	ID             uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key"`
 	ItemId         string    `gorm:"not null"`
 	UserId         string    `gorm:"not null"`
-	Quantity       int32     `gorm:"not null"`
+	Quantity       int       `gorm:"not null"`
 	ItemName       string
 	PricePerItem   float64 `gorm:"not null"`
 	OrderStatus    string  `gorm:"not null"`

@@ -1,7 +1,6 @@
 syntax = "proto3";
 package messages;
 option go_package = "order/messages";
-import "order.proto";
 
 message ReceiveOrder_Request {
   string userId = 1;
@@ -11,16 +10,26 @@ message ReceiveOrder_Request {
   double pricePerItem = 5;
 }
 
+// this is the message the actor on node 1 will send to the remote actor on node 2
+message Notification {
+  Message Message = 1;
+  string ReceiverId = 2;
+}
+
+message Message {
+  string Content = 1;
+  string Action = 2;
+  string OrderId = 3;
+};
+
 // this is the message the order actor will send to the inventory actor
 message CheckAvailability_Request {
-  order.PID Sender = 1; // this is the PID the remote actor should reply to
-  string orderId = 2;
-  string itemId = 3;
-  int32 quantity = 4;
+  string OrderId = 1;
+  string ItemId = 2;
+  int32 Quantity = 3;
 }
 
 message OrderUpdated_Request {
-  order.PID Sender = 1;
   string status = 2;
 }
 
@@ -34,7 +43,6 @@ message PaymentReq {
 }
 
 message EmptyMessage {
-  order.PID Sender = 1;
   string Message = 2;
 }
 
