@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	orderMessage "github.com/AT-SmFoYcSNaQ/AT2023/Go/order/messages"
+	messages "github.com/AT-SmFoYcSNaQ/AT2023/Go/payment/messages/proto"
 	console "github.com/asynkron/goconsole"
 	"github.com/asynkron/protoactor-go/actor"
 	"github.com/asynkron/protoactor-go/remote"
@@ -25,7 +25,7 @@ type PaymentActor struct {
 
 func (actor *PaymentActor) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
-	case *orderMessage.PaymentReq:
+	case *messages.PaymentReq:
 		paymentReq := PaymentReq{
 			Quantity:       msg.Quantity,
 			PricePerItem:   msg.PricePerItem,
@@ -56,14 +56,14 @@ func (actor *PaymentActor) handlePaymentRequest(paymentReq PaymentReq, self *act
 
 func (actor *PaymentActor) sendPaymentInfo(paymentReq PaymentReq, isSuccessful bool) {
 	fmt.Println("Sending payment info to order actor")
-	message := &orderMessage.OrderPaymentInfo{
+	message := &messages.OrderPaymentInfo{
 		OrderId:        paymentReq.OrderId,
 		IsSuccessful:   isSuccessful,
 		AccountNumber:  paymentReq.AccountNumber,
 		AccountBalance: paymentReq.AccountBalance,
 	}
 
-	spawnResponse, err := actor.remoting.SpawnNamed("127.0.0.1:8090", "order-actor", "order-actor", time.Second)
+	spawnResponse, err := actor.remoting.SpawnNamed("192.168.1.13:8090", "order-actor", "order-actor", time.Second)
 
 	if err != nil {
 		panic(err)
@@ -84,15 +84,15 @@ func (actor *PaymentActor) sendPaymentInfoNotification(paymentReq PaymentReq, is
 		paymentMessage = fmt.Sprintf("Payment for orderId %s was not successful,account balance did not change.", paymentReq.OrderId)
 	}
 
-	spawnResponse, err := actor.remoting.SpawnNamed("127.0.0.1:8098", "notification-actor", "notification-actor", time.Second)
+	spawnResponse, err := actor.remoting.SpawnNamed("192.168.1.25:8092", "notification-actor", "notification-actor", time.Second)
 
-	messageContent := &orderMessage.Message{
+	messageContent := &messages.Message{
 		Content: paymentMessage,
 		Action:  "",
 		OrderId: "",
 	}
 
-	message := &orderMessage.Notification{
+	message := &messages.Notification{
 		Message:    messageContent,
 		ReceiverId: paymentReq.UserId,
 	}
@@ -120,31 +120,32 @@ func main() {
 
 	// Create the payment actor and register it with the remote system
 	paymentActorProps := actor.PropsFromProducer(func() actor.Actor { return &PaymentActor{remoting: remoting, context: context} })
-	context.Spawn(paymentActorProps)
+	//context.Spawn(paymentActorProps)
 
-	//remoting.Register("payment-actor", paymentActorProps)
+	remoting.Register("payment-actor", paymentActorProps)
 
-	spawnResponse, err := remoting.SpawnNamed("192.168.1.48:8092", "notification-actor", "notification-actor", time.Second)
-
-	if err != nil {
-		panic(err)
-		return
-	}
-
-	paymentMessage := "NOTIFICATIONNOTIFICATION"
-
-	messageContent := &orderMessage.Message{
-		Content: paymentMessage,
-		Action:  "",
-		OrderId: "",
-	}
-
-	message := &orderMessage.Notification{
-		Message:    messageContent,
-		ReceiverId: "5a543ba3-9ee2-48f9-b3db-d85c443a1512",
-	}
-
-	spawnedPID := spawnResponse.Pid
-	context.Send(spawnedPID, message)
 	console.ReadLine()
+	//spawnResponse, err := remoting.SpawnNamed("192.168.1.25:8092", "notification-actor", "notification-actor", time.Second)
+	//
+	//if err != nil {
+	//	panic(err)
+	//	return
+	//}
+	//
+	//paymentMessage := "NOTIFICATIONNOTIFICATION"
+	//
+	//messageContent := &messages.Message{
+	//	Content: paymentMessage,
+	//	Action:  "",
+	//	OrderId: "",
+	//}
+	//
+	//message := &messages.Notification{
+	//	Message:    messageContent,
+	//	ReceiverId: "5a543ba3-9ee2-48f9-b3db-d85c443a1512",
+	//}
+	//
+	//spawnedPID := spawnResponse.Pid
+	//context.Send(spawnedPID, message)
+	//console.ReadLine()
 }
