@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
+	notifMessage "github.com/AT-SmFoYcSNaQ/AT2023/Go/notification/messages"
+	orderMessage "github.com/AT-SmFoYcSNaQ/AT2023/Go/order/messages"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/payment/messages/Go/messages"
 	console "github.com/asynkron/goconsole"
 	"github.com/asynkron/protoactor-go/actor"
 	"github.com/asynkron/protoactor-go/remote"
 	"time"
-	//notifMessage "github.com/AT-SmFoYcSNaQ/AT2023/Go/notification/messages"
-	//orderMessage "github.com/AT-SmFoYcSNaQ/AT2023/Go/order/messages"
 )
 
 type PaymentReq struct {
@@ -17,6 +17,7 @@ type PaymentReq struct {
 	OrderId        string
 	AccountNumber  string
 	AccountBalance float32
+	UserId         string
 }
 
 type PaymentActor struct {
@@ -24,30 +25,16 @@ type PaymentActor struct {
 	context  *actor.RootContext
 }
 
-//func (actor *PaymentActor) Receive(context actor.Context) {
-//	switch msg := context.Message().(type) {
-//	case *orderMessage.PaymentRequest:
-//		paymentReq := PaymentReq{
-//			Quantity:       msg.Quantity,
-//			PricePerItem:   msg.PricePerItem,
-//			OrderId:        msg.OrderId,
-//			AccountBalance: msg.AccountBalance,
-//			AccountNumber:  msg.AccountNumber,
-//			UserId: msg.UserId,
-//		}
-//		actor.handlePaymentRequest(paymentReq, context.Self())
-//	}
-//}
-
 func (actor *PaymentActor) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
-	case *messages.PaymentRequest:
+	case *orderMessage.PaymentReq:
 		paymentReq := PaymentReq{
 			Quantity:       msg.Quantity,
 			PricePerItem:   msg.PricePerItem,
 			OrderId:        msg.OrderId,
 			AccountBalance: msg.AccountBalance,
 			AccountNumber:  msg.AccountNumber,
+			UserId:         msg.UserId,
 		}
 		actor.handlePaymentRequest(paymentReq, context.Self())
 	}
@@ -101,17 +88,16 @@ func (actor *PaymentActor) sendPaymentInfoNotification(paymentReq PaymentReq, is
 
 	spawnResponse, err := actor.remoting.SpawnNamed("127.0.0.1:8098", "notification-actor", "notification-actor", time.Second)
 
-	//
-	//message2:=&notifMessage.Notification
-	//{
-	//	Sender:     self,
-	//	Message:    paymentMessage,
-	//	ReceiverId: paymentReq.UserId,
-	//	Type:       0,
-	//}
+	messageContent := &notifMessage.Message{
+		Content: paymentMessage,
+		Action:  "",
+		OrderId: "",
+	}
 
-	message := &messages.PaymentInfo{
-		PaymentMessage: paymentMessage,
+	message := &notifMessage.Notification{
+		Sender:     self,
+		Message:    messageContent,
+		ReceiverId: paymentReq.UserId,
 	}
 
 	if err != nil {
@@ -134,7 +120,7 @@ func main() {
 	// Get the root context of the actor system
 	context := system.Root
 
-	// Create the order actor and register it with the remote system
+	// Create the payment actor and register it with the remote system
 	orderActorProps := actor.PropsFromProducer(func() actor.Actor { return &PaymentActor{remoting: remoting, context: context} })
 	remoting.Register("payment-actor", orderActorProps)
 

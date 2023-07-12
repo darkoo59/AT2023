@@ -15,23 +15,15 @@ type NotificationActor struct {
 	hub *socket.Hub
 }
 
-type NotificationResponse struct {
-	Message string
-	Type    int32
-}
-
 func (h *NotificationActor) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
 	case *messages.Notification:
-		fmt.Println("Received notification: " + context.Message().(*messages.Notification).Message)
+		fmt.Println("Received notification: " + context.Message().(*messages.Notification).Message.Content)
 		client := (*h.hub).GetClient(msg.ReceiverId)
 		if client == nil {
 			return
 		}
-		data, _ := json.Marshal(&NotificationResponse{
-			Message: msg.Message,
-			Type:    msg.Type,
-		})
+		data, _ := json.Marshal(msg.Message)
 		client.Send <- data
 		context.Send(msg.Sender, &messages.Response{
 			Message: "Notification sent.",

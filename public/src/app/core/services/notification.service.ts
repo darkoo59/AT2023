@@ -6,6 +6,12 @@ import { environment } from "src/environments/environment";
 import { AuthService } from "./auth.service";
 import { getDecodedAccessToken } from "src/utils/utility";
 
+export interface Notification {
+  Content: string;
+  Action: string;
+  OrderId: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -15,8 +21,9 @@ export class NotificationService {
     if(payload == null) return of({})
     return new WebSocketSubject(`${environment.notificationUrl}/${payload.sub}`).pipe(
       tap((response: any) => {
-        console.log('Received message from server:', response)
-        this.showNotification(response.Message)
+        const res = response as Notification;
+        console.log('Received message from server:', res)
+        this.showNotification(res.Content)
       }),
       catchError((error) => {
         console.error('An error occurred:', error)
