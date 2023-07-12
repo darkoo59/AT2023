@@ -55,7 +55,7 @@ func (a *InventoryActor) Init(ctx cluster.GrainContext) {
 }
 
 func (a *InventoryActor) Terminate(ctx cluster.GrainContext) {
-	log.Printf("Terminating ponger: %s", ctx.Self().GetId())
+	log.Printf("Terminating inventory actor: %s", ctx.Self().GetId())
 }
 
 func (a *InventoryActor) ReceiveDefault(ctx cluster.GrainContext) {
@@ -161,9 +161,9 @@ func main() {
 		return &InventoryActor{}
 	})
 
-	remoteConfig := remote.Configure("127.0.0.1", port)
+	remoteConfig := remote.Configure("192.168.1.16", port)
 
-	cp := automanaged.NewWithConfig(1*time.Second, port1, "localhost:8098", "localhost:9098", "localhost:10098")
+	cp := automanaged.NewWithConfig(5*time.Second, port1, "192.168.1.16:8098", "192.168.1.16:9098", "192.168.1.16:10098")
 	clusterKind := cluster.NewKind(
 		"inventory-actor",
 		actor.PropsFromProducer(NewInventoryActor),
