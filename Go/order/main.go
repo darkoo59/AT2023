@@ -39,15 +39,9 @@ func (actor *OrderActor) Receive(context actor.Context) {
 			OrderStatus:    "Pending",
 		}
 		actor.handleOrderReceived(&order, context.Self()) // Pass the order and self reference
-	case *messages.CheckAvailability_Response:
-		// Availability response from inventory actor
-		fmt.Println(msg)
-		actor.handleAvailabilityChecked(msg, context.Self()) // Pass availability status and self reference
 	case *paymentMessages.OrderPaymentInfo:
 		// Payment response from payment actor
-		actor.handlePaymentInfoReceived(msg, context.Self()) // Pass payment status and self reference
-	default:
-		fmt.Println(context.Message())
+		actor.handlePaymentInfoReceived(msg) // Pass payment status and self reference
 	}
 }
 
@@ -67,20 +61,29 @@ func (actor *OrderActor) handleOrderReceived(order *model.Order, self *actor.PID
 	}
 
 	inventoryGrain := cluster.GetCluster(actor.system).Get("inventory-1", "inventory-actor")
-	responseFuture := actor.context.RequestFuture(inventoryGrain, &message, time.Second*10)
+	responseFuture := actor.context.RequestFuture(inventoryGrain, message, time.Second*10)
 	response, err := responseFuture.Result()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(response)
-	fmt.Println("Sent message to the inventory actor!")
+	responseValues := response.(messages.CheckAvailability_Response)
+	fmt.Println(responseValues.OrderId)
+	msgToSend := messages.CheckAvailability_Response{
+		OrderId:     responseValues.OrderId,
+		IsAvailable: responseValues.IsAvailable,
+		Quantity:    responseValues.Quantity,
+		ItemName:    responseValues.ItemName,
+		ItemPrice:   responseValues.ItemPrice,
+	}
+	actor.handleAvailabilityChecked(&msgToSend)
+
 }
 
-func (actor *OrderActor) handleAvailabilityChecked(request *messages.CheckAvailability_Response, self *actor.PID) {
+func (actor *OrderActor) handleAvailabilityChecked(request *messages.CheckAvailability_Response) {
 	fmt.Println("Received message from inventory actor!")
 
 	// Spawn the notification actor
-	spawnResponse, err := actor.remoting.SpawnNamed("127.0.0.1:8092", "notification-actor", "notification-actor", time.Second)
+	spawnResponse, err := actor.remoting.SpawnNamed("192.168.1.17:8092", "notification-actor", "notification-actor", time.Second)
 	if err != nil {
 		panic(err)
 	}
@@ -97,7 +100,14 @@ func (actor *OrderActor) handleAvailabilityChecked(request *messages.CheckAvaila
 		if err != nil {
 			return
 		}
-		actor.context.Send(spawnResponse.Pid, &messages.OrderUpdated_Request{Status: "Pending"})
+		actor.context.Send(spawnResponse.Pid, &messages.Notification{
+			Message: &messages.Message{
+				Content: "Pending",
+				Action:  "dasda",
+				OrderId: "dasd2",
+			},
+			ReceiverId: orderUpdated.UserId,
+		})
 		actor.prepareOrder(10 * time.Second)
 		orderUpdated, err = actor.service.GetById(request.OrderId)
 		if err != nil {
@@ -108,8 +118,15 @@ func (actor *OrderActor) handleAvailabilityChecked(request *messages.CheckAvaila
 		if err != nil {
 			return
 		}
-		actor.context.Send(spawnResponse.Pid, &messages.OrderUpdated_Request{Status: "Prepared"})
-		actor.processPayment(self, request) // Pass self reference for payment actor
+		actor.context.Send(spawnResponse.Pid, &messages.Notification{
+			Message: &messages.Message{
+				Content: "Prepared",
+				Action:  "dasda",
+				OrderId: "dasd2",
+			},
+			ReceiverId: orderUpdated.UserId,
+		})
+		actor.processPayment(request) // Pass self reference for payment actor
 	} else {
 		// Item is out of stock
 		message := &messages.OrderUpdated_Request{
@@ -130,11 +147,11 @@ func (actor *OrderActor) handleAvailabilityChecked(request *messages.CheckAvaila
 	}
 }
 
-func (actor *OrderActor) handlePaymentInfoReceived(request *paymentMessages.OrderPaymentInfo, self *actor.PID) {
+func (actor *OrderActor) handlePaymentInfoReceived(request *paymentMessages.OrderPaymentInfo) {
 	fmt.Println("Received message from payment actor!")
 
 	// Spawn the notification actor
-	spawnResponse, err := actor.remoting.SpawnNamed("127.0.0.1:8092", "notification-actor", "notification-actor", time.Second)
+	spawnResponse, err := actor.remoting.SpawnNamed("192.168.1.17:8092", "notification-actor", "notification-actor", time.Second)
 	if err != nil {
 		panic(err)
 	}
@@ -154,11 +171,14 @@ func (actor *OrderActor) handlePaymentInfoReceived(request *paymentMessages.Orde
 		return
 	}
 
-	message := &messages.OrderUpdated_Request{
-		Status: status,
-	}
-
-	actor.context.Send(spawnResponse.Pid, message)
+	actor.context.Send(spawnResponse.Pid, &messages.Notification{
+		Message: &messages.Message{
+			Content: status,
+			Action:  "dasda",
+			OrderId: "dasd2",
+		},
+		ReceiverId: orderUpdated.UserId,
+	})
 }
 
 func (actor *OrderActor) prepareOrder(seconds time.Duration) {
@@ -167,7 +187,7 @@ func (actor *OrderActor) prepareOrder(seconds time.Duration) {
 	fmt.Println("Order preparing process done!")
 }
 
-func (actor *OrderActor) processPayment(self *actor.PID, request *messages.CheckAvailability_Response) {
+func (actor *OrderActor) processPayment(request *messages.CheckAvailability_Response) {
 	// Spawn the payment actor
 	spawnResponse, err := actor.remoting.SpawnNamed("127.0.0.1:8093", "payment-actor", "payment-actor", time.Second)
 	if err != nil {
@@ -230,13 +250,13 @@ func main() {
 	})
 	c.Remote.Register("order-actor", orderActorProps)
 
-	//pid := system.Root.Spawn(orderActorProps)
-	//system.Root.Send(pid, &messages.ReceiveOrder_Request{
-	//	UserId:         "64add14732e4923ab54924d0",
-	//	ItemId:         "64add14732e4923ab5492460",
-	//	Quantity:       2,
-	//	AccountBalance: 100,
-	//	PricePerItem:   5,
-	//})
+	pid := system.Root.Spawn(orderActorProps)
+	system.Root.Send(pid, &messages.ReceiveOrder_Request{
+		UserId:         "64add14732e4923ab54924d0",
+		ItemId:         "64add14732e4923ab5492460",
+		Quantity:       2,
+		AccountBalance: 100,
+		PricePerItem:   5,
+	})
 	console.ReadLine()
 }

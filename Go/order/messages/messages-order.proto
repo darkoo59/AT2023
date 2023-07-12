@@ -10,6 +10,18 @@ message ReceiveOrder_Request {
   double pricePerItem = 5;
 }
 
+// this is the message the actor on node 1 will send to the remote actor on node 2
+message Notification {
+  Message Message = 1;
+  string ReceiverId = 2;
+}
+
+message Message {
+  string Content = 1;
+  string Action = 2;
+  string OrderId = 3;
+};
+
 // this is the message the order actor will send to the inventory actor
 message CheckAvailability_Request {
   string OrderId = 1;
