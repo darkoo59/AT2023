@@ -7,8 +7,6 @@ import (
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/controller"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/customer_actor"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/service"
-	"github.com/asynkron/protoactor-go/actor"
-	"github.com/asynkron/protoactor-go/remote"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -34,27 +32,6 @@ func initializeControllers(routerGroup *gin.RouterGroup, customerActor *customer
 	authService := service.CreateAuthService(logger, customerService)
 	authController := controller.NewAuthController(logger, authService)
 	authController.AuthRoute(routerGroup)
-}
-
-func initializeActorSystem(loadConfig config.Config, logger *zap.Logger) *customer_actor.CustomerActor {
-	system := actor.NewActorSystem()
-	remoteConfig := remote.Configure(loadConfig.ActorHostAddress, loadConfig.ActorCustomerPort)
-	remoting := remote.NewRemote(system, remoteConfig)
-	remoting.Start()
-
-	actorContext := system.Root
-	customerActor := &customer_actor.CustomerActor{
-		Remoting: remoting,
-		Context:  actorContext,
-		Logger:   logger,
-	}
-	customerActorProps := actor.PropsFromProducer(func() actor.Actor {
-		return customerActor
-	})
-	remoting.Register("customer-actor", customerActorProps)
-	logger.Info("Customer actor registered")
-
-	return customerActor
 }
 
 func main() {
@@ -97,7 +74,7 @@ func main() {
 	router.Use(cors.New(corsConfig))
 	routerGroup := router.Group("/api")
 
-	customerActor := initializeActorSystem(loadConfig, logger)
+	customerActor := customer_actor.CreateCustomerActor(logger)
 	initializeControllers(routerGroup, customerActor, logger)
 
 	go func() {
