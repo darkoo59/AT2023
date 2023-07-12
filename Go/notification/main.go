@@ -38,7 +38,7 @@ func main() {
 	})
 
 	system := actor.NewActorSystem()
-	remoteConfig := remote.Configure("0.0.0.0", 8092)
+	remoteConfig := remote.Configure("192.168.1.25", 8092)
 	remoting := remote.NewRemote(system, remoteConfig)
 	remoting.Start()
 	remoting.Register("notification-actor", actor.PropsFromProducer(func() actor.Actor {
