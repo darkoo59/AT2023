@@ -10,7 +10,6 @@ import (
 
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/order/messages"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/order/service"
-	paymentMessages "github.com/AT-SmFoYcSNaQ/AT2023/Go/payment/messages/Go/messages"
 	console "github.com/asynkron/goconsole"
 	"github.com/asynkron/protoactor-go/actor"
 	"github.com/asynkron/protoactor-go/remote"
@@ -39,7 +38,7 @@ func (actor *OrderActor) Receive(context actor.Context) {
 			OrderStatus:    "Pending",
 		}
 		actor.handleOrderReceived(&order, context.Self()) // Pass the order and self reference
-	case *paymentMessages.OrderPaymentInfo:
+	case *messages.OrderPaymentInfo:
 		// Payment response from payment actor
 		actor.handlePaymentInfoReceived(msg) // Pass payment status and self reference
 	}
@@ -147,7 +146,7 @@ func (actor *OrderActor) handleAvailabilityChecked(request *messages.CheckAvaila
 	}
 }
 
-func (actor *OrderActor) handlePaymentInfoReceived(request *paymentMessages.OrderPaymentInfo) {
+func (actor *OrderActor) handlePaymentInfoReceived(request *messages.OrderPaymentInfo) {
 	fmt.Println("Received message from payment actor!")
 
 	// Spawn the notification actor

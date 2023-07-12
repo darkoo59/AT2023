@@ -11,9 +11,35 @@ import (
 )
 
 type CustomerActor struct {
-	Remoting *remote.Remote
-	Context  *actor.RootContext
-	Logger   *zap.Logger
+	PID         *actor.PID
+	RootContext *actor.RootContext
+	Remoting    *remote.Remote
+	Logger      *zap.Logger
+}
+
+func CreateCustomerActor(logger *zap.Logger) *CustomerActor {
+	loadConfig, err := config.LoadConfig(".")
+	if err != nil {
+		logger.Fatal(err.Error())
+		return nil
+	}
+
+	system := actor.NewActorSystem()
+	remoteConfig := remote.Configure(loadConfig.ActorCustomerAddress, loadConfig.ActorCustomerPort)
+	remoting := remote.NewRemote(system, remoteConfig)
+	remoting.Start()
+
+	actorContext := system.Root
+	customerActor := &CustomerActor{Logger: logger, RootContext: actorContext}
+	customerActorProps := actor.PropsFromProducer(func() actor.Actor {
+		return customerActor
+	})
+	pid := actorContext.Spawn(customerActorProps)
+	customerActor.PID = pid
+	remoting.Register("customer-actor", customerActorProps)
+	logger.Info("Customer actor registered")
+
+	return customerActor
 }
 
 type Order struct {
@@ -22,15 +48,8 @@ type Order struct {
 	Quantity int
 }
 
-func (customerActor *CustomerActor) Spawn() *actor.PID {
-	customerActorProps := actor.PropsFromProducer(func() actor.Actor {
-		return customerActor
-	})
-	return customerActor.Context.Spawn(customerActorProps)
-}
-
 func (customerActor *CustomerActor) Send(pid *actor.PID, message interface{}) {
-	customerActor.Context.Send(pid, message)
+	customerActor.RootContext.Send(pid, message)
 }
 
 func (customerActor *CustomerActor) Receive(context actor.Context) {
@@ -49,7 +68,7 @@ func (customerActor *CustomerActor) sendOrderRequest(order *messages.ReceiveOrde
 	}
 
 	spawnResponse, err := customerActor.Remoting.SpawnNamed(
-		loadConfig.ActorHostAddress+":"+fmt.Sprint(loadConfig.ActorOrderPort),
+		loadConfig.ActorOrderAddress+":"+fmt.Sprint(loadConfig.ActorOrderPort),
 		"order-actor",
 		"order-actor",
 		time.Second)

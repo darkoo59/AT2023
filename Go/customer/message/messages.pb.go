@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.30.0
 // 	protoc        v4.22.0
-// source: messages-order.proto
+// source: messages.proto
 
 package messages
 

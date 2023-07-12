@@ -10,6 +10,13 @@ message ReceiveOrder_Request {
   double pricePerItem = 5;
 }
 
+message OrderPaymentInfo{
+  string orderId = 1;
+  bool isSuccessful = 2;
+  string accountNumber = 3;
+  float accountBalance = 4;
+}
+
 // this is the message the actor on node 1 will send to the remote actor on node 2
 message Notification {
   Message Message = 1;
