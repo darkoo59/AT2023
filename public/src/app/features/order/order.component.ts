@@ -28,7 +28,7 @@ export class OrderComponent {
           return this.orderService.createOrder(data).pipe(
             tap(res => {
               this.form.reset()
-              this.notificationService.showSuccess(res.status);
+              this.notificationService.showNotification(res.status);
             }),
             catchError(() => EMPTY)
           )
