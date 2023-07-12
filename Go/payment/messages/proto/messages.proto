@@ -10,6 +10,15 @@ message OrderPaymentInfo{
   float accountBalance = 4;
 }
 
+message PaymentReq {
+  int32 quantity = 1;
+  float pricePerItem = 2;
+  string orderId = 3; //same orderId that needs to be in response from this actor
+  string accountNumber = 4;
+  float accountBalance = 5; //new account balance
+  string userId = 6;
+}
+
 message Notification {
   Message Message = 1;
   string ReceiverId = 2;
@@ -20,26 +29,3 @@ message Message {
   string Action = 2;
   string OrderId = 3;
 };
-
-////message sent to NotificationActor
-//message PaymentInfoNotification{
-//  string paymentMessage = 1;
-//}
-//
-////// this is the message the actor on node 1 will send to the remote actor on node 2
-////message Notification {
-////  actor.PID Sender = 1; // this is the PID the remote actor should reply to
-////  string Message = 2;
-////  string ReceiverId = 3;
-////  int32 Type = 4;
-////}
-//
-//
-////message from OrderActor PaymentRequest
-//message PaymentRequest {
-//  int32 quantity = 1;
-//  float pricePerItem = 2;
-//  string orderId = 3; //same orderId that needs to be in response from this actor
-//  string accountNumber = 4;
-//  float accountBalance = 5; //new account balance
-//}
