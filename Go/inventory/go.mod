@@ -3,9 +3,9 @@ module github.com/AT-SmFoYcSNaQ/AT2023/Go/inventory
 go 1.20
 
 require (
-	github.com/AT-SmFoYcSNaQ/AT2023/Go/order v0.0.0-00010101000000-000000000000
 	github.com/asynkron/protoactor-go v0.0.0-20230703103118-df5e4f42621c
 	go.mongodb.org/mongo-driver v1.12.0
+	google.golang.org/protobuf v1.30.0
 )
 
 require (
@@ -25,7 +25,7 @@ require (
 	github.com/labstack/gommon v0.3.1 // indirect
 	github.com/lithammer/shortuuid/v4 v4.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/orcaman/concurrent-map v1.0.0 // indirect
@@ -47,7 +47,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.12.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v0.35.0 // indirect
 	go.opentelemetry.io/otel/trace v1.12.0 // indirect
-	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
+	golang.org/x/crypto v0.9.0 // indirect
 	golang.org/x/exp v0.0.0-20220518171630-0b5c67f07fdf // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
@@ -55,7 +55,6 @@ require (
 	golang.org/x/text v0.9.0 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	google.golang.org/grpc v1.55.0 // indirect
-	google.golang.org/protobuf v1.30.0 // indirect
 )
 
 replace github.com/AT-SmFoYcSNaQ/AT2023/Go/order => ../order

@@ -3,7 +3,6 @@ module github.com/AT-SmFoYcSNaQ/AT2023/Go/order
 go 1.20
 
 require (
-	github.com/AT-SmFoYcSNaQ/AT2023/Go/payment v0.0.0-00010101000000-000000000000
 	github.com/asynkron/goconsole v0.0.0-20160504192649-bfa12eebf716
 	github.com/asynkron/protoactor-go v0.0.0-20230414121700-22ab527f4f7a
 	github.com/google/uuid v1.3.0
@@ -57,5 +56,3 @@ require (
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	google.golang.org/grpc v1.55.0 // indirect
 )
-
-replace github.com/AT-SmFoYcSNaQ/AT2023/Go/payment => ../payment
