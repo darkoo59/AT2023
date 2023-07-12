@@ -65,7 +65,7 @@ func (actor *OrderActor) handleOrderReceived(order *model.Order, self *actor.PID
 	if err != nil {
 		panic(err)
 	}
-	responseValues := response.(messages.CheckAvailability_Response)
+	responseValues := response.(*messages.CheckAvailability_Response)
 	fmt.Println(responseValues.OrderId)
 	msgToSend := messages.CheckAvailability_Response{
 		OrderId:     responseValues.OrderId,
@@ -82,7 +82,7 @@ func (actor *OrderActor) handleAvailabilityChecked(request *messages.CheckAvaila
 	fmt.Println("Received message from inventory actor!")
 
 	// Spawn the notification actor
-	spawnResponse, err := actor.remoting.SpawnNamed("192.168.1.17:8092", "notification-actor", "notification-actor", time.Second)
+	spawnResponse, err := actor.remoting.SpawnNamed("127.0.0.1:8092", "notification-actor", "notification-actor", time.Second)
 	if err != nil {
 		panic(err)
 	}
@@ -150,7 +150,7 @@ func (actor *OrderActor) handlePaymentInfoReceived(request *messages.OrderPaymen
 	fmt.Println("Received message from payment actor!")
 
 	// Spawn the notification actor
-	spawnResponse, err := actor.remoting.SpawnNamed("192.168.1.17:8092", "notification-actor", "notification-actor", time.Second)
+	spawnResponse, err := actor.remoting.SpawnNamed("127.0.0.1:8092", "notification-actor", "notification-actor", time.Second)
 	if err != nil {
 		panic(err)
 	}
@@ -224,7 +224,7 @@ func main() {
 	orderService := service.CreateOrderService()
 
 	// Configure and start remote communication with actors
-	remoteConfig := remote.Configure("192.168.1.15", 8090)
+	remoteConfig := remote.Configure("127.0.0.1", 8090)
 	//remoting := remote.NewRemote(system, remoteConfig)
 	//
 	//remoting.Start()
@@ -234,7 +234,7 @@ func main() {
 	// With automanaged implementation, one must list up all known members at first place to ping each other.
 	// Note that this member itself is not registered as a member member because this only works as a client.
 	lookup := disthash.New()
-	cp := automanaged.NewWithConfig(10*time.Second, 6330, "192.168.1.16:8098", "192.168.1.16:9098", "192.168.1.16:10098")
+	cp := automanaged.NewWithConfig(10*time.Second, 6330, "127.0.0.1:8098", "127.0.0.1:9098", "127.0.0.1:10098")
 	clusterConfig := cluster.Configure("cluster-inventory", cp, lookup, remoteConfig)
 	c := cluster.New(system, clusterConfig)
 	// Start as a client, not as a cluster member.
@@ -249,13 +249,13 @@ func main() {
 	})
 	c.Remote.Register("order-actor", orderActorProps)
 
-	pid := system.Root.Spawn(orderActorProps)
-	system.Root.Send(pid, &messages.ReceiveOrder_Request{
-		UserId:         "64add14732e4923ab54924d0",
-		ItemId:         "64add14732e4923ab5492460",
-		Quantity:       2,
-		AccountBalance: 100,
-		PricePerItem:   5,
-	})
+	//pid := system.Root.Spawn(orderActorProps)
+	//system.Root.Send(pid, &messages.ReceiveOrder_Request{
+	//	UserId:         "64add14732e4923ab54924d0",
+	//	ItemId:         "64add14732e4923ab5492460",
+	//	Quantity:       2,
+	//	AccountBalance: 100,
+	//	PricePerItem:   5,
+	//})
 	console.ReadLine()
 }

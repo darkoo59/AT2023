@@ -1,7 +1,6 @@
 package customer_actor
 
 import (
-	"fmt"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/config"
 	messages "github.com/AT-SmFoYcSNaQ/AT2023/Go/customer/message"
 	"github.com/asynkron/protoactor-go/actor"
@@ -30,7 +29,7 @@ func CreateCustomerActor(logger *zap.Logger) *CustomerActor {
 	remoting.Start()
 
 	actorContext := system.Root
-	customerActor := &CustomerActor{Logger: logger, RootContext: actorContext}
+	customerActor := &CustomerActor{Logger: logger, RootContext: actorContext, Remoting: remoting}
 	customerActorProps := actor.PropsFromProducer(func() actor.Actor {
 		return customerActor
 	})
@@ -67,15 +66,33 @@ func (customerActor *CustomerActor) sendOrderRequest(order *messages.ReceiveOrde
 		customerActor.Logger.Error(err.Error())
 	}
 
+	//spawnResponse, err := customerActor.Remoting.SpawnNamed(
+	//	loadConfig.ActorOrderAddress+":"+fmt.Sprint(loadConfig.ActorOrderPort),
+	//	"order-actor",
+	//	"order-actor",
+	//	5*time.Second)
+	//if err != nil {
+	//	customerActor.Logger.Error(err.Error())
+	//	panic(err)
+	//}
 	spawnResponse, err := customerActor.Remoting.SpawnNamed(
-		loadConfig.ActorOrderAddress+":"+fmt.Sprint(loadConfig.ActorOrderPort),
-		"order-actor",
-		"order-actor",
-		time.Second)
+		loadConfig.ActorOrderAddress+":"+"8092",
+		"notification-actor",
+		"notification-actor",
+		5*time.Second)
 	if err != nil {
 		customerActor.Logger.Error(err.Error())
 		panic(err)
 	}
-	customerActor.Send(spawnResponse.Pid, order)
+
+	customerActor.RootContext.Send(spawnResponse.Pid, &messages.Notification{
+		Message: &messages.Message{
+			Content: "Peder",
+			Action:  "Update something",
+			OrderId: "123",
+		},
+		ReceiverId: "8860dcc0-6bc3-4246-b3da-56f55c517459"})
+
+	customerActor.Send(spawnResponse.Pid, &messages.EmptyMessage{Message: "Test"})
 	customerActor.Logger.Info("Message sent to order-actor")
 }

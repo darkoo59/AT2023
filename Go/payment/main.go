@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	notifMessage "github.com/AT-SmFoYcSNaQ/AT2023/Go/notification/messages"
 	orderMessage "github.com/AT-SmFoYcSNaQ/AT2023/Go/order/messages"
 	"github.com/AT-SmFoYcSNaQ/AT2023/Go/payment/messages/Go/messages"
 	console "github.com/asynkron/goconsole"
@@ -88,14 +87,13 @@ func (actor *PaymentActor) sendPaymentInfoNotification(paymentReq PaymentReq, is
 
 	spawnResponse, err := actor.remoting.SpawnNamed("127.0.0.1:8098", "notification-actor", "notification-actor", time.Second)
 
-	messageContent := &notifMessage.Message{
+	messageContent := &orderMessage.Message{
 		Content: paymentMessage,
 		Action:  "",
 		OrderId: "",
 	}
 
-	message := &notifMessage.Notification{
-		Sender:     self,
+	message := &orderMessage.Notification{
 		Message:    messageContent,
 		ReceiverId: paymentReq.UserId,
 	}
