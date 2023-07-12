@@ -25,9 +25,6 @@ func (h *NotificationActor) Receive(context actor.Context) {
 		}
 		data, _ := json.Marshal(msg.Message)
 		client.Send <- data
-		context.Send(msg.Sender, &messages.Response{
-			Message: "Notification sent.",
-		})
 	}
 }
 
@@ -41,7 +38,7 @@ func main() {
 	})
 
 	system := actor.NewActorSystem()
-	remoteConfig := remote.Configure("127.0.0.1", 8092)
+	remoteConfig := remote.Configure("0.0.0.0", 8092)
 	remoting := remote.NewRemote(system, remoteConfig)
 	remoting.Start()
 	remoting.Register("notification-actor", actor.PropsFromProducer(func() actor.Actor {
